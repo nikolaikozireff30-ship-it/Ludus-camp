@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUDUS · Конфигуратор КП</title>
+<link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --red:#FF0005;--black:#000;--silver:#A5A5A5;--line:rgba(255,255,255,.14);
+ --head:'Tektur','Arial Narrow',sans-serif;--body:'Montserrat',Arial,sans-serif;}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--body);background:#000;color:#fff}
+.app{display:grid;grid-template-columns:390px 1fr;min-height:100vh}
+/* ---- Форма ---- */
+.form{background:#0c0c0c;padding:22px 22px 60px;overflow-y:auto;max-height:100vh;border-right:1px solid #1c1c1c}
+.brandrow{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+.bolt{width:22px;height:22px;flex:none}
+.logo{font-family:var(--head);font-weight:700;letter-spacing:3px;font-size:24px}
+.form .hint{color:#7d7d7d;font-size:12px;margin-bottom:18px}
+.grp{margin:0 0 16px;border-top:1px solid #1e1e1e;padding-top:14px}
+.grp>label{display:block;font-family:var(--head);text-transform:uppercase;letter-spacing:1.5px;font-size:11px;color:#8f8f8f;margin-bottom:8px}
+input[type=text],input[type=number],input[type=date],select{width:100%;background:#000;border:1px solid #303030;color:#fff;
+ border-radius:8px;padding:9px 11px;font-family:var(--body);font-size:14px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.chips{display:flex;gap:6px;margin-top:6px}
+.chips button{flex:1;background:#000;border:1px solid #303030;color:#bbb;border-radius:8px;padding:7px 0;cursor:pointer;font-family:var(--head);font-size:13px}
+.chips button.on{background:var(--red);color:#fff;border-color:var(--red)}
+.opt{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:14px}
+.opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--red)}
+.opt.dis{opacity:.32}
+.qty{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:14px}
+.qty input{width:64px;text-align:center}
+.lang{display:flex;gap:6px;margin-left:auto}
+.lang button{background:#000;border:1px solid #333;color:#bbb;border-radius:7px;padding:5px 11px;cursor:pointer;font-family:var(--head);font-size:12px}
+.lang button.on{background:#fff;color:#000}
+/* ---- Право ---- */
+.right{background:#1a1a1a;padding:20px;overflow:auto;max-height:100vh;text-align:center}
+.bar{width:1123px;max-width:100%;display:flex;align-items:center;gap:14px;margin:0 auto 14px}
+.bar .t{font-family:var(--head);text-transform:uppercase;letter-spacing:1px;color:#cfcfcf;font-size:13px}
+.dl{background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;font-family:var(--head);text-transform:uppercase;letter-spacing:1px;font-size:14px}
+/* ---- Оффер (светлый фирменный) ---- */
+.offer{position:relative;width:1123px;min-height:794px;margin:0 auto;background:#fff;color:#111;padding:44px 52px 40px;overflow:hidden;box-shadow:0 16px 44px rgba(0,0,0,.5);text-align:left}
+.offer .acc{position:absolute;right:-160px;top:-160px;width:260px;height:260px;background:var(--red);transform:rotate(45deg)}
+.o-wrap{position:relative;z-index:2}
+.o-top{display:flex;justify-content:space-between;align-items:flex-start}
+.o-lab{font-family:var(--head);text-transform:uppercase;letter-spacing:3px;font-size:12px;color:#6a6a6a}
+.o-logo{display:flex;align-items:center;gap:8px}
+.o-logo .w{font-family:var(--head);font-weight:700;letter-spacing:3px;font-size:20px;color:#111}
+.o-title{font-family:var(--head);font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:54px;line-height:1;margin:14px 0 3px;color:#111}
+.o-title i{font-style:normal;color:var(--red)}
+.o-slogan{font-family:var(--head);letter-spacing:4px;font-size:13px;color:var(--red)}
+.o-sub{font-size:15px;color:#6a6a6a;margin:4px 0 20px}
+.o-meta{display:flex;border-top:2px solid var(--red);border-bottom:1px solid #e6e6e6;margin-bottom:22px}
+.o-meta div{flex:1;padding:11px 4px 13px;border-right:1px solid #e6e6e6}.o-meta div:last-child{border-right:none}
+.o-meta .k{font-family:var(--head);text-transform:uppercase;letter-spacing:1.5px;font-size:10px;color:#6a6a6a}
+.o-meta .v{font-family:var(--head);font-size:19px;margin-top:3px;color:#111}
+.o-cols{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.o-cols h2{font-family:var(--head);text-transform:uppercase;letter-spacing:2px;font-size:15px;margin:0 0 12px;padding-bottom:7px;border-bottom:2px solid var(--red);display:inline-block;color:#111}
+.inc{list-style:none;margin:0;padding:0}
+.inc li{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid #e6e6e6;font-size:14px}
+.inc .d{color:var(--red);font-family:var(--head)}
+.inc b{font-weight:600}
+table{width:100%;border-collapse:collapse}
+td{padding:8px 0;border-bottom:1px solid #e6e6e6;font-size:13.5px;vertical-align:top}
+td.r{text-align:right;font-family:var(--head);white-space:nowrap}
+td .sm{color:#6a6a6a;font-size:11px}
+tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
+.o-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;border-top:2px solid var(--red);padding-top:12px}
+.o-total .lab{font-family:var(--head);text-transform:uppercase;letter-spacing:2px;font-size:14px;color:#111}
+.o-total .num{font-family:var(--head);font-weight:700;font-size:44px;color:var(--red);line-height:1}
+.o-total .usd{color:#6a6a6a;font-family:var(--head);font-size:15px;margin-left:10px}
+.o-foot{display:flex;justify-content:space-between;margin-top:26px;gap:20px}
+.o-terms{font-size:11px;color:#6a6a6a;max-width:560px;line-height:1.6}
+.o-cont{font-size:11px;text-align:right;line-height:1.7;color:#333}.o-cont b{font-family:var(--head);letter-spacing:1px;color:#111}
+/* ---- Печать ---- */
+@page{size:A4 landscape;margin:0}
+@media print{
+  body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .form,.bar{display:none!important}.app{display:block}
+  .right{padding:0;background:#fff;max-height:none;overflow:visible}
+  .offer{box-shadow:none;width:100%;min-height:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="form">
+    <div class="brandrow">
+      <svg class="bolt" viewBox="0 0 24 24"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>
+      <div class="logo">LUDUS <span data-i18n="kp">· КП</span></div>
+    </div>
+    <div class="hint" data-i18n="hint">Собери пакет — цена и оффер обновляются справа. «Скачать PDF» — вверху.</div>
+
+    <div class="grp"><label data-i18n="g_client">Клиент и гости</label>
+      <input type="text" id="client" data-i18n-ph="ph_client" placeholder="Имя клиента">
+      <div class="row" style="margin-top:8px">
+        <div><input type="number" id="guests" value="1" min="1"><div class="hint" data-i18n="guests" style="margin:4px 0 0">гостей</div></div>
+        <div><input type="date" id="start"><div class="hint" data-i18n="checkin" style="margin:4px 0 0">дата заезда</div></div>
+      </div>
+    </div>
+
+    <div class="grp"><label data-i18n="g_dur">Срок (дней)</label>
+      <div class="chips" id="durchips"><button data-d="7" data-i18n="w1">1 нед</button><button data-d="14" data-i18n="w2">2 нед</button><button data-d="28" data-i18n="w4">1 мес</button></div>
+      <input type="number" id="days" value="14" min="1" style="margin-top:8px">
+    </div>
+
+    <div class="grp"><label data-i18n="g_pkg">Пакет</label>
+      <select id="package"><option>TRAINING</option><option selected>STAY &amp; TRAIN</option><option>ALL-INCLUSIVE</option><option>VIP</option></select>
+    </div>
+
+    <div class="grp"><label data-i18n="g_opt">Опции</label>
+      <label class="opt" id="wrap-single"><input type="checkbox" id="single"> <span data-i18n="o_single">Одноместное размещение</span></label>
+      <label class="opt" id="wrap-vipmenu"><input type="checkbox" id="vipmenu"> <span data-i18n="o_vip">Апгрейд питания до VIP-меню</span></label>
+      <div class="opt" id="wrap-meal" style="gap:10px"><span data-i18n="o_meal">Спец-питание:</span>
+        <select id="mealspec" style="flex:1"><option value="" data-i18n="m_none">нет</option><option value="халяль" data-i18n="m_halal">халяль +15%</option><option value="веган" data-i18n="m_vegan">веган +10%</option></select></div>
+      <div class="opt" style="gap:10px"><span data-i18n="o_welcome">Welcome-пакет:</span>
+        <select id="welcome" style="flex:1"><option value="" data-i18n="w_none">нет</option><option value="базовый" data-i18n="w_basic">базовый 2 800</option><option value="без_шлема" data-i18n="w_nohelm">без шлема 4 700</option><option value="полный" data-i18n="w_full">полный 6 000</option></select></div>
+      <div class="qty"><span data-i18n="o_massage">Массаж (сессий)</span><input type="number" id="massage" value="0" min="0"></div>
+      <div class="qty"><span data-i18n="o_privc">Приват с чемпионом</span><input type="number" id="privc" value="0" min="0"></div>
+      <div class="qty"><span data-i18n="o_privs">Приват стандарт</span><input type="number" id="privs" value="0" min="0"></div>
+      <label class="opt"><input type="checkbox" id="transfer"> <span data-i18n="o_transfer">Трансфер из аэропорта</span></label>
+      <label class="opt"><input type="checkbox" id="prepay"> <span data-i18n="o_prepay">Онлайн-предоплата −3%</span></label>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="bar">
+      <div class="t" data-i18n="preview">Превью КП · так уйдёт клиенту</div>
+      <div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button></div>
+      <button class="dl" onclick="window.print()" data-i18n="download">⬇ Скачать PDF</button>
+    </div>
+    <div class="offer" id="offer"></div>
+  </div>
+</div>
+
+<script>
+const PRICES={курс_thb_usd:35,
+ пакеты:{"TRAINING":{цены:{7:5300,14:9600,28:15900},питание_день:0,проживание:false,одноместно_уже:false},
+ "STAY & TRAIN":{цены:{7:11900,14:21100,28:32700},питание_день:210,проживание:true,одноместно_уже:false},
+ "ALL-INCLUSIVE":{цены:{7:13900,14:25100,28:41400},питание_день:500,проживание:true,одноместно_уже:false},
+ "VIP":{цены:{7:29900,14:55900,28:99000},питание_день:800,проживание:true,одноместно_уже:true}},
+ одноместное_нед:4500,апгрейд_vip_меню_нед:2100,vip_меню_день:800,
+ welcome:{полный:6000,без_шлема:4700,базовый:2800},массаж:625,приват:{чемпион:1200,стандарт:800},
+ приват_скидка_кэмпер:0.15,трансфер:850,халяль_pct:0.15,веган_pct:0.10,предоплата_скидка:0.03};
+
+function ставка(ц,D){const a=ц[7]/7,b=ц[14]/14,c=ц[28]/28;
+ if(D<=7)return a;if(D<=14)return a+(b-a)*(D-7)/7;if(D<=28)return b+(c-b)*(D-14)/14;return c;}
+function calc(s,cfg=PRICES){
+ const p=cfg.пакеты[s.пакет];const D=+s.дни||0,N=+s.гостей||0;if(!p||D<=0||N<=0)return null;
+ const w=D/7,L=[];
+ L.push(["package",s.пакет,D+"d",ставка(p.цены,D)*D]);
+ const up=s.vipmenu&&p.проживание&&s.пакет!=="VIP",md=up?cfg.vip_меню_день:p.питание_день;
+ if(s.single&&p.проживание&&!p.одноместно_уже)L.push(["single","",w+"w",cfg.одноместное_нед*w]);
+ if(up)L.push(["vipmenu","",w+"w",cfg.апгрейд_vip_меню_нед*w]);
+ if((s.meal==="халяль"||s.meal==="веган")&&md>0){const pc=s.meal==="халяль"?cfg.халяль_pct:cfg.веган_pct;
+  L.push([s.meal==="халяль"?"halal":"vegan","","",pc*md*D]);}
+ if(s.welcome&&cfg.welcome[s.welcome]!==undefined){const inc=s.пакет==="VIP"&&s.welcome==="полный";
+  L.push(["welcome",s.welcome,inc?"incl":"",inc?0:cfg.welcome[s.welcome]]);}
+ if(+s.massage>0)L.push(["massage","",s.massage+"×"+cfg.массаж,cfg.массаж*s.massage]);
+ const k=1-cfg.приват_скидка_кэмпер;
+ if(+s.privc>0)L.push(["priv_champ","",s.privc+"×"+Math.round(cfg.приват.чемпион*k),cfg.приват.чемпион*k*s.privc]);
+ if(+s.privs>0)L.push(["priv_std","",s.privs+"×"+Math.round(cfg.приват.стандарт*k),cfg.приват.стандарт*k*s.privs]);
+ if(s.transfer)L.push(["transfer","","1w",cfg.трансфер]);
+ const per=L.reduce((a,x)=>a+x[3],0),sub=per*N,disc=s.prepay?sub*cfg.предоплата_скидка:0,tot=sub-disc;
+ return{lines:L.map(x=>[x[0],x[1],x[2],Math.round(x[3]),Math.round(x[3]*N)]),N,sub:Math.round(sub),
+  prepay:!!s.prepay,disc:Math.round(disc),tot:Math.round(tot),usd:Math.round(tot/cfg.курс_thb_usd)};
+}
+const SLOGAN="SHAPE YOUR POWER";
+const T={ru:{lab:"Персональное предложение",client:"Клиент",guests:"Гостей",dates:"Даты",nights:"Дней",
+ inc:"Что входит",bd:"Расчёт стоимости",sub:"Подытог",prepay:"Предоплата −3%",total:"Итого",t1:"ВАШ",t2:"кэмп",
+ subttl:"Программа под ваши цели · LUDUS, Чалонг · Пхукет",
+ terms:"Предложение действительно 14 дней с даты выпуска. Цены включают VAT. Экскурсии и индивидуальная съёмка — по запросу. Финальное подтверждение — при бронировании и предоплате.",openLabel:"Ежедневно 06:30 – 22:00",dash:"—"},
+ en:{lab:"Personal Offer",client:"Client",guests:"Guests",dates:"Dates",nights:"Days",
+ inc:"What's included",bd:"Price breakdown",sub:"Subtotal",prepay:"Prepayment −3%",total:"Total",t1:"YOUR",t2:"camp",
+ subttl:"A programme tailored to your goals · LUDUS, Chalong · Phuket",
+ terms:"Offer valid for 14 days from the date of issue. Prices include VAT. Excursions and individual filming — on request. Final confirmation upon booking and prepayment.",openLabel:"Open daily 06:30 – 22:00",dash:"—"}};
+const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное размещение",vipmenu:"Апгрейд до VIP-меню",
+ halal:"Питание халяль (+15%)",vegan:"Питание веган (+10%)",welcome:w=>"Welcome-пакет ("+w+")",
+ massage:"Массаж спортивный",priv_champ:"Приват с чемпионом (−15%)",priv_std:"Приват стандарт (−15%)",transfer:"Трансфер из аэропорта"},
+ en:{package:p=>"Package "+p,single:"Single occupancy",vipmenu:"VIP-menu upgrade",
+ halal:"Halal meals (+15%)",vegan:"Vegan meals (+10%)",welcome:w=>"Welcome pack ("+({полный:"full",без_шлема:"no helmet",базовый:"basic"}[w]||w)+")",
+ massage:"Sport massage",priv_champ:"Private — champion (−15%)",priv_std:"Private — standard (−15%)",transfer:"Airport transfer"}};
+const MEALTXT={ru:{0:"без питания",210:"завтрак",500:"полное питание 3×/день",800:"VIP-меню"},
+ en:{0:"no meals",210:"breakfast",500:"full board, 3 meals/day",800:"VIP menu"}};
+const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
+
+const UI={ru:{kp:"· КП",hint:"Собери пакет — цена и оффер обновляются справа. «Скачать PDF» — вверху.",
+ g_client:"Клиент и гости",ph_client:"Имя клиента",guests:"гостей",checkin:"дата заезда",
+ g_dur:"Срок (дней)",w1:"1 нед",w2:"2 нед",w4:"1 мес",g_pkg:"Пакет",g_opt:"Опции",
+ o_single:"Одноместное размещение",o_vip:"Апгрейд питания до VIP-меню",o_meal:"Спец-питание:",
+ m_none:"нет",m_halal:"халяль +15%",m_vegan:"веган +10%",o_welcome:"Welcome-пакет:",
+ w_none:"нет",w_basic:"базовый 2 800",w_nohelm:"без шлема 4 700",w_full:"полный 6 000",
+ o_massage:"Массаж (сессий)",o_privc:"Приват с чемпионом",o_privs:"Приват стандарт",
+ o_transfer:"Трансфер из аэропорта",o_prepay:"Онлайн-предоплата −3%",
+ preview:"Превью КП · так уйдёт клиенту",download:"⬇ Скачать PDF"},
+ en:{kp:"· QUOTE",hint:"Build the package — price and offer update on the right. “Download PDF” is at the top.",
+ g_client:"Client & guests",ph_client:"Client name",guests:"guests",checkin:"check-in date",
+ g_dur:"Duration (days)",w1:"1 wk",w2:"2 wk",w4:"1 mo",g_pkg:"Package",g_opt:"Options",
+ o_single:"Single occupancy",o_vip:"Upgrade meals to VIP menu",o_meal:"Special meals:",
+ m_none:"none",m_halal:"halal +15%",m_vegan:"vegan +10%",o_welcome:"Welcome pack:",
+ w_none:"none",w_basic:"basic 2,800",w_nohelm:"no helmet 4,700",w_full:"full 6,000",
+ o_massage:"Massage (sessions)",o_privc:"Champion private",o_privs:"Standard private",
+ o_transfer:"Airport transfer",o_prepay:"Online prepayment −3%",
+ preview:"Quote preview · as sent to client",download:"⬇ Download PDF"}};
+function applyUI(l){document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(UI[l][k]!==undefined)e.textContent=UI[l][k];});
+ document.querySelectorAll('[data-i18n-ph]').forEach(e=>{const k=e.getAttribute('data-i18n-ph');if(UI[l][k]!==undefined)e.placeholder=UI[l][k];});}
+let lang="ru";const $=id=>document.getElementById(id);
+function fmt(n){return n.toLocaleString('ru-RU').replace(/,/g,' ');}
+function months(l){return l==="ru"?["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"]:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];}
+function dstr(iso,l){if(!iso)return T[l].dash;const d=new Date(iso);return d.getDate()+" "+months(l)[d.getMonth()]+" "+d.getFullYear();}
+function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,
+ single:$('single').checked,vipmenu:$('vipmenu').checked,meal:$('mealspec').value,welcome:$('welcome').value,
+ massage:+$('massage').value,privc:+$('privc').value,privs:+$('privs').value,transfer:$('transfer').checked,prepay:$('prepay').checked};}
+function includedItems(s){const l=lang,p=PRICES.пакеты[s.пакет],out=[];
+ out.push((l==="ru"?"Программа: ":"Program: ")+"<b>"+s.пакет+"</b>");
+ if(p.проживание){const occ=(s.пакет==="VIP")?(l==="ru"?"премиум, одноместно":"premium, single"):(s.single?(l==="ru"?"одноместно":"single"):(l==="ru"?"двухместно":"double"));
+   out.push((l==="ru"?"Проживание: ":"Accommodation: ")+"<b>"+occ+"</b>");}
+ const md=(s.vipmenu&&p.проживание&&s.пакет!=="VIP")?800:p.питание_день;
+ let meal=MEALTXT[l][md]||"";if(s.meal)meal+=" · "+(s.meal==="халяль"?(l==="ru"?"халяль":"halal"):(l==="ru"?"веган":"vegan"));
+ out.push((l==="ru"?"Питание: ":"Meals: ")+"<b>"+meal+"</b>");
+ const ex=[];if(+s.massage)ex.push((l==="ru"?"массаж ×":"massage ×")+s.massage);
+ if(+s.privc)ex.push((l==="ru"?"приваты чемпион ×":"champion privates ×")+s.privc);
+ if(+s.privs)ex.push((l==="ru"?"приваты ×":"privates ×")+s.privs);
+ if(s.transfer)ex.push(l==="ru"?"трансфер":"transfer");if(s.welcome)ex.push("welcome");
+ if(ex.length)out.push((l==="ru"?"Дополнительно: ":"Extras: ")+"<b>"+ex.join(", ")+"</b>");
+ out.push((l==="ru"?"Экскурсии: ":"Excursions: ")+"<b>"+(l==="ru"?"по запросу":"on request")+"</b>");
+ return out;}
+function render(){
+ const s=selection(),r=calc(s),t=T[lang],p=PRICES.пакеты[s.пакет];
+ $('wrap-single').classList.toggle('dis',!(p.проживание&&!p.одноместно_уже));
+ $('wrap-vipmenu').classList.toggle('dis',!(p.проживание&&s.пакет!=="VIP"));
+ $('wrap-meal').classList.toggle('dis',p.питание_день===0&&!(s.vipmenu&&p.проживание));
+ [...$('durchips').children].forEach(b=>b.classList.toggle('on',+b.dataset.d===s.дни));
+ if(!r){$('offer').innerHTML='<div class="o-wrap" style="padding:40px">Заполни пакет, срок и число гостей…</div>';return;}
+ const endISO=$('start').value?new Date(new Date($('start').value).getTime()+s.дни*864e5).toISOString().slice(0,10):"";
+ const dates=$('start').value?dstr($('start').value,lang)+" – "+dstr(endISO,lang):t.dash;
+ const inc=includedItems(s).map(x=>'<li><span class="d">◆</span><span>'+x+'</span></li>').join('');
+ let rows=r.lines.map(([k,arg,det,per,all])=>{let n=LN[lang][k];n=(typeof n==="function")?n(arg):n;
+   return '<tr><td>'+n+(det?'<div class="sm">'+det+'</div>':'')+'</td><td class="r">฿ '+fmt(all)+'</td></tr>';}).join('');
+ rows+='<tr class="sub"><td>'+t.sub+'</td><td class="r">฿ '+fmt(r.sub)+'</td></tr>';
+ if(r.prepay)rows+='<tr class="disc"><td>'+t.prepay+'</td><td class="r">− ฿ '+fmt(r.disc)+'</td></tr>';
+ $('offer').innerHTML=`<div class="acc"></div><div class="o-wrap">
+   <div class="o-top"><div class="o-lab">${t.lab}</div>
+     <div class="o-logo">${BOLT}<span class="w">LUDUS</span></div></div>
+   <div class="o-title">${t.t1} <i>${t.t2}</i></div>
+   <div class="o-slogan">${SLOGAN}</div>
+   <div class="o-sub">${t.subttl}</div>
+   <div class="o-meta">
+     <div><div class="k">${t.client}</div><div class="v">${$('client').value||t.dash}</div></div>
+     <div><div class="k">${t.guests}</div><div class="v">${s.гостей}</div></div>
+     <div><div class="k">${t.dates}</div><div class="v" style="font-size:15px">${dates}</div></div>
+     <div><div class="k">${t.nights}</div><div class="v">${s.дни}</div></div>
+   </div>
+   <div class="o-cols">
+     <div><h2>${t.inc}</h2><ul class="inc">${inc}</ul></div>
+     <div><h2>${t.bd}</h2><table>${rows}</table>
+       <div class="o-total"><div class="lab">${t.total}</div>
+         <div><span class="num">฿ ${fmt(r.tot)}</span><span class="usd">≈ $${fmt(r.usd)}</span></div></div></div>
+   </div>
+   <div class="o-foot"><div class="o-terms">${t.terms}</div>
+     <div class="o-cont"><b>LUDUS · CHALONG</b><br>10/130 Moo 5, Chalong, Muang Phuket<br>Open daily 06:30 – 22:00<br>@ludus.phuket.muaythai · VEDA SIAM Co Ltd</div></div>
+ </div>`;
+}
+document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',render));
+$('durchips').addEventListener('click',e=>{const b=e.target.closest('button');if(b){$('days').value=b.dataset.d;render();}});
+$('lang').addEventListener('click',e=>{const b=e.target.closest('button');if(b){lang=b.dataset.l;[...$('lang').children].forEach(x=>x.classList.toggle('on',x===b));applyUI(lang);render();}});
+applyUI(lang);render();
+</script>
+</body>
+</html>
