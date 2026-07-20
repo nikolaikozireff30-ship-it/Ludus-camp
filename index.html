@@ -132,7 +132,7 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
   <div class="right">
     <div class="bar">
       <div class="t" data-i18n="preview">Превью КП · так уйдёт клиенту</div>
-      <div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button></div>
+      <div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button><button data-l="it">IT</button></div>
       <button class="dl" onclick="window.print()" data-i18n="download">⬇ Скачать PDF</button>
     </div>
     <div class="offerwrap" id="offerwrap"><div class="offer" id="offer"></div></div>
@@ -181,11 +181,15 @@ const SLOGAN="SHAPE YOUR POWER";
 const T={ru:{lab:"Персональное предложение",client:"Клиент",guests:"Гостей",dates:"Даты",nights:"Дней",
  inc:"Что входит",bd:"Расчёт стоимости",sub:"Подытог",prepay:"Предоплата −3%",vat:"VAT 7% (сверху)",total:"Итого",t1:"ВАШ",t2:"кэмп",
  subttl:"Программа под ваши цели · LUDUS, Чалонг · Пхукет",
- terms:"Цены указаны БЕЗ НДС; НДС 7% начисляется сверху и включён в «Итого». Предложение действительно 14 дней. Экскурсии, медуслуги и съёмка — по запросу. Финальное подтверждение — при бронировании и предоплате.",openLabel:"Ежедневно 06:30 – 22:00",dash:"—"},
+ terms:"Цены указаны БЕЗ НДС; НДС 7% начисляется сверху и включён в «Итого». Предложение действительно 14 дней. Экскурсии, медуслуги и съёмка — по запросу. Финальное подтверждение — при бронировании и предоплате.",openLabel:"Ежедневно 06:30 – 22:00",empty:"Заполни пакет, срок и число гостей…",dash:"—"},
  en:{lab:"Personal Offer",client:"Client",guests:"Guests",dates:"Dates",nights:"Days",
  inc:"What's included",bd:"Price breakdown",sub:"Subtotal",prepay:"Prepayment −3%",vat:"VAT 7% (on top)",total:"Total",t1:"YOUR",t2:"camp",
  subttl:"A programme tailored to your goals · LUDUS, Chalong · Phuket",
- terms:"Prices are exclusive of VAT; 7% VAT is added on top and included in the Total. Offer valid for 14 days. Excursions, medical services and filming — on request. Final confirmation upon booking and prepayment.",openLabel:"Open daily 06:30 – 22:00",dash:"—"}};
+ terms:"Prices are exclusive of VAT; 7% VAT is added on top and included in the Total. Offer valid for 14 days. Excursions, medical services and filming — on request. Final confirmation upon booking and prepayment.",openLabel:"Open daily 06:30 – 22:00",empty:"Select package, duration and number of guests…",dash:"—"},
+ it:{lab:"Offerta Personale",client:"Cliente",guests:"Ospiti",dates:"Date",nights:"Giorni",
+ inc:"Cosa è incluso",bd:"Dettaglio prezzo",sub:"Subtotale",prepay:"Acconto −3%",vat:"IVA 7% (in aggiunta)",total:"Totale",t1:"IL TUO",t2:"camp",
+ subttl:"Un programma su misura per i tuoi obiettivi · LUDUS, Chalong · Phuket",
+ terms:"I prezzi sono al netto dell'IVA; l'IVA del 7% viene aggiunta e inclusa nel Totale. Offerta valida 14 giorni. Escursioni, servizi medici e riprese — su richiesta. Conferma finale al momento della prenotazione e dell'acconto.",openLabel:"Aperto tutti i giorni 06:30 – 22:00",empty:"Seleziona pacchetto, durata e numero di ospiti…",dash:"—"}};
 const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное размещение",meal_plus:"Меню STANDARD+",meal_champ:"Меню CHAMPION",
  meal_add:lvl=>"Питание 3×/день · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Питание халяль (+15%)",vegan:"Питание веган (+10%)",welcome:w=>"Welcome-пакет ("+w+")",
@@ -193,9 +197,18 @@ const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное разм
  en:{package:p=>"Package "+p,single:"Single occupancy",meal_plus:"STANDARD+ menu",meal_champ:"CHAMPION menu",
  meal_add:lvl=>"Meals 3×/day · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Halal meals (+15%)",vegan:"Vegan meals (+10%)",welcome:w=>"Welcome pack ("+({полный:"full",без_шлема:"no helmet",базовый:"basic"}[w]||w)+")",
- massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer"}};
+ massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer"},
+ it:{package:p=>"Pacchetto "+p,single:"Sistemazione singola",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
+ meal_add:lvl=>"Pasti 3×/giorno · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
+ halal:"Pasti halal (+15%)",vegan:"Pasti vegani (+10%)",welcome:w=>"Welcome pack ("+({полный:"completo",без_шлема:"senza casco",базовый:"base"}[w]||w)+")",
+ massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto"}};
 const MEALLVL={ru:{standard:"питание STANDARD 3×/день",standard_plus:"питание STANDARD+ 3×/день",champion:"питание CHAMPION 3×/день"},
- en:{standard:"STANDARD board, 3 meals/day",standard_plus:"STANDARD+ board, 3 meals/day",champion:"CHAMPION board, 3 meals/day"}};
+ en:{standard:"STANDARD board, 3 meals/day",standard_plus:"STANDARD+ board, 3 meals/day",champion:"CHAMPION board, 3 meals/day"},
+ it:{standard:"pensione STANDARD, 3 pasti/giorno",standard_plus:"pensione STANDARD+, 3 pasti/giorno",champion:"pensione CHAMPION, 3 pasti/giorno"}};
+// Фразы для блока "Что входит" (раньше были зашиты в includedItems через ru/en тернарники).
+const PH={ru:{program:"Программа: ",accomm:"Проживание: ",meals:"Питание: ",extras:"Дополнительно: ",excursions:"Экскурсии: ",onreq:"по запросу",occ_single:"одноместно",occ_double:"двухместно",nomeal:"без питания",breakfast:"завтрак",halal:"халяль",vegan:"веган",massage:"массаж ×",privc:"перс. тренировки (чемпион) ×",privs:"перс. тренировки ×",transfer:"трансфер"},
+ en:{program:"Program: ",accomm:"Accommodation: ",meals:"Meals: ",extras:"Extras: ",excursions:"Excursions: ",onreq:"on request",occ_single:"single",occ_double:"double",nomeal:"no meals",breakfast:"breakfast",halal:"halal",vegan:"vegan",massage:"massage ×",privc:"personal training (champion) ×",privs:"personal training ×",transfer:"transfer"},
+ it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"}};
 const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
 
 const UI={ru:{kp:"· КП",hint:"Собери пакет — цена и оффер обновляются справа/ниже. «Скачать PDF» — сверху.",
@@ -215,32 +228,43 @@ const UI={ru:{kp:"· КП",hint:"Собери пакет — цена и офф�
  w_none:"none",w_basic:"basic 2,800",w_nohelm:"no helmet 4,700",w_full:"full 6,000",
  o_massage:"Massage (sessions, −10%)",o_privc:"Personal training (champion)",o_privs:"Personal training (standard)",
  o_transfer:"Airport transfer",o_prepay:"Online prepayment −3%",
- preview:"Quote preview · as sent to client",download:"⬇ Download PDF"}};
+ preview:"Quote preview · as sent to client",download:"⬇ Download PDF"},
+ it:{kp:"· PREVENTIVO",hint:"Componi il pacchetto — prezzo e offerta si aggiornano a destra/sotto. «Scarica PDF» in alto.",
+ g_client:"Cliente e ospiti",ph_client:"Nome del cliente",guests:"ospiti",checkin:"data di arrivo",
+ g_dur:"Durata (giorni)",w1:"1 sett",w2:"2 sett",w4:"1 mese",g_pkg:"Pacchetto",g_opt:"Opzioni",
+ o_double:"Sistemazione doppia (più economica)",o_addmeals:"Aggiungi pasti 3×/giorno",o_meallevel:"Livello pasti:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_meal:"Pasti speciali:",m_none:"nessuno",m_halal:"halal +15%",m_vegan:"vegano +10%",o_welcome:"Welcome pack:",
+ w_none:"nessuno",w_basic:"base 2.800",w_nohelm:"senza casco 4.700",w_full:"completo 6.000",
+ o_massage:"Massaggio (sessioni, −10%)",o_privc:"Allenamento pers. (campione)",o_privs:"Allenamento pers. (standard)",
+ o_transfer:"Transfer aeroporto",o_prepay:"Acconto online −3%",
+ preview:"Anteprima preventivo · come lo riceve il cliente",download:"⬇ Scarica PDF"}};
 function applyUI(l){document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(UI[l][k]!==undefined)e.textContent=UI[l][k];});
  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{const k=e.getAttribute('data-i18n-ph');if(UI[l][k]!==undefined)e.placeholder=UI[l][k];});}
 let lang="ru";const $=id=>document.getElementById(id);
 function fmt(n){return n.toLocaleString('ru-RU').replace(/,/g,' ');}
-function months(l){return l==="ru"?["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"]:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];}
+function months(l){return l==="ru"?["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"]
+ :l==="it"?["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"]
+ :["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];}
 function dstr(iso,l){if(!iso)return T[l].dash;const d=new Date(iso);return d.getDate()+" "+months(l)[d.getMonth()]+" "+d.getFullYear();}
 function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,
  double:$('double').checked,add_meals:$('addmeals').checked,meal_level:$('meallevel').value,meal:$('mealspec').value,welcome:$('welcome').value,
  massage:+$('massage').value,privc:+$('privc').value,privs:+$('privs').value,transfer:$('transfer').checked,prepay:$('prepay').checked};}
-function includedItems(s){const l=lang,p=PRICES.пакеты[s.пакет],out=[];
- out.push((l==="ru"?"Программа: ":"Program: ")+"<b>"+s.пакет+"</b>");
- if(p.проживание){const occ=s.double?(l==="ru"?"двухместно":"double"):(l==="ru"?"одноместно":"single");
-   out.push((l==="ru"?"Проживание: ":"Accommodation: ")+"<b>"+occ+"</b>");}
+function includedItems(s){const l=lang,p=PRICES.пакеты[s.пакет],h=PH[l],out=[];
+ out.push(h.program+"<b>"+s.пакет+"</b>");
+ if(p.проживание){const occ=s.double?h.occ_double:h.occ_single;
+   out.push(h.accomm+"<b>"+occ+"</b>");}
  let meal;
  if(p.меню){const lvl=(s.meal_level in PRICES.меню)?s.meal_level:"standard";meal=MEALLVL[l][lvl];}
  else if(s.add_meals&&p.питание_день===0){const lvl=(s.meal_level in PRICES.меню)?s.meal_level:"standard";meal=MEALLVL[l][lvl];}
- else meal=(l==="ru"?{0:"без питания",210:"завтрак"}:{0:"no meals",210:"breakfast"})[p.питание_день];
- if(s.meal)meal+=" · "+(s.meal==="халяль"?(l==="ru"?"халяль":"halal"):(l==="ru"?"веган":"vegan"));
- out.push((l==="ru"?"Питание: ":"Meals: ")+"<b>"+meal+"</b>");
- const ex=[];if(+s.massage)ex.push((l==="ru"?"массаж ×":"massage ×")+s.massage);
- if(+s.privc)ex.push((l==="ru"?"перс. тренировки (чемпион) ×":"personal training (champion) ×")+s.privc);
- if(+s.privs)ex.push((l==="ru"?"перс. тренировки ×":"personal training ×")+s.privs);
- if(s.transfer)ex.push(l==="ru"?"трансфер":"transfer");if(s.welcome)ex.push("welcome");
- if(ex.length)out.push((l==="ru"?"Дополнительно: ":"Extras: ")+"<b>"+ex.join(", ")+"</b>");
- out.push((l==="ru"?"Экскурсии: ":"Excursions: ")+"<b>"+(l==="ru"?"по запросу":"on request")+"</b>");
+ else meal=(p.питание_день===0?h.nomeal:h.breakfast);
+ if(s.meal)meal+=" · "+(s.meal==="халяль"?h.halal:h.vegan);
+ out.push(h.meals+"<b>"+meal+"</b>");
+ const ex=[];if(+s.massage)ex.push(h.massage+s.massage);
+ if(+s.privc)ex.push(h.privc+s.privc);
+ if(+s.privs)ex.push(h.privs+s.privs);
+ if(s.transfer)ex.push(h.transfer);if(s.welcome)ex.push("welcome");
+ if(ex.length)out.push(h.extras+"<b>"+ex.join(", ")+"</b>");
+ out.push(h.excursions+"<b>"+h.onreq+"</b>");
  return out;}
 function fitOffer(){const wrap=$('offerwrap'),off=$('offer');const scale=Math.min(1,wrap.clientWidth/1123);
  off.style.transform="scale("+scale+")";wrap.style.height=(off.offsetHeight*scale)+"px";}
@@ -253,7 +277,7 @@ function render(){
  $('wrap-meallevel').classList.toggle('dis',!mealsActive);$('meallevel').disabled=!mealsActive;
  $('wrap-meal').classList.toggle('dis',!(mealsActive||p.питание_день>0));
  [...$('durchips').children].forEach(b=>b.classList.toggle('on',+b.dataset.d===s.дни));
- if(!r){$('offer').innerHTML='<div class="o-wrap" style="padding:40px">Заполни пакет, срок и число гостей…</div>';fitOffer();return;}
+ if(!r){$('offer').innerHTML='<div class="o-wrap" style="padding:40px">'+t.empty+'</div>';fitOffer();return;}
  const endISO=$('start').value?new Date(new Date($('start').value).getTime()+s.дни*864e5).toISOString().slice(0,10):"";
  const dates=$('start').value?dstr($('start').value,lang)+" – "+dstr(endISO,lang):t.dash;
  const inc=includedItems(s).map(x=>'<li><span class="d">◆</span><span>'+x+'</span></li>').join('');
