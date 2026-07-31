@@ -14,7 +14,10 @@ body{margin:0;font-family:var(--body);background:#000;color:#fff}
 .brandrow{display:flex;align-items:center;gap:9px;margin-bottom:2px}
 .bolt{width:22px;height:22px;flex:none}
 .logo{font-family:var(--head);font-weight:700;letter-spacing:3px;font-size:24px}
+.headline{font-family:var(--head);font-weight:700;font-size:18px;letter-spacing:.5px;margin:10px 0 3px}
 .form .hint{color:#7d7d7d;font-size:12px;margin-bottom:18px}
+.form .hint.sub{font-style:italic;margin-top:0}
+.fieldhint{font-size:11px;line-height:1.4;margin:1px 0 6px}
 .grp{margin:0 0 16px;border-top:1px solid #1e1e1e;padding-top:14px}
 .grp>label{display:block;font-family:var(--head);text-transform:uppercase;letter-spacing:1.5px;font-size:11px;color:#8f8f8f;margin-bottom:8px}
 input[type=text],input[type=number],input[type=date],select{width:100%;background:#000;border:1px solid #303030;color:#fff;border-radius:8px;padding:9px 11px;font-family:var(--body);font-size:14px}
@@ -25,6 +28,7 @@ input[type=text],input[type=number],input[type=date],select{width:100%;backgroun
 .opt{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:14px}
 .opt input[type=checkbox]{width:17px;height:17px;accent-color:var(--red)}
 .opt.dis{opacity:.32}
+.opt.hl span{color:var(--red);font-weight:700}
 .qty{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:14px}
 .qty input{width:64px;text-align:center}
 .lang{display:flex;gap:6px;margin-left:auto}
@@ -32,7 +36,6 @@ input[type=text],input[type=number],input[type=date],select{width:100%;backgroun
 .lang button.on{background:#fff;color:#000}
 .right{background:#1a1a1a;padding:20px;overflow:auto;max-height:100vh}
 .bar{width:1123px;max-width:100%;display:flex;align-items:center;gap:14px;margin:0 auto 14px;flex-wrap:wrap}
-.bar .t{font-family:var(--head);text-transform:uppercase;letter-spacing:1px;color:#cfcfcf;font-size:13px}
 .dl{background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;font-family:var(--head);text-transform:uppercase;letter-spacing:1px;font-size:14px}
 .offerwrap{max-width:1123px;margin:0 auto;overflow:hidden}
 .offer{position:relative;width:1123px;min-height:794px;transform-origin:top left;background:#fff;color:#111;padding:44px 52px 40px;overflow:hidden;box-shadow:0 16px 44px rgba(0,0,0,.5)}
@@ -56,6 +59,10 @@ input[type=text],input[type=number],input[type=date],select{width:100%;backgroun
 .inc li{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid #e6e6e6;font-size:14px}
 .inc .d{color:var(--red);font-family:var(--head)}
 .inc b{font-weight:600}
+/* Всплывающие подсказки в левом меню */
+.tip{border-bottom:1px dotted #7a7a7a;cursor:help;position:relative}
+.tip.help{border-bottom:none;color:#8f8f8f;font-size:13px}
+.tip:hover::after{content:attr(data-tip);position:absolute;left:0;top:150%;width:250px;white-space:normal;background:#1e1e1e;border:1px solid #444;color:#fff;font-family:var(--body);font-weight:400;font-style:normal;text-transform:none;letter-spacing:0;font-size:11px;line-height:1.45;padding:9px 11px;border-radius:6px;z-index:30;box-shadow:0 8px 22px rgba(0,0,0,.5)}
 table{width:100%;border-collapse:collapse}
 td{padding:8px 0;border-bottom:1px solid #e6e6e6;font-size:13.5px;vertical-align:top}
 td.r{text-align:right;font-family:var(--head);white-space:nowrap}
@@ -68,14 +75,12 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
 .o-foot{display:flex;justify-content:space-between;margin-top:26px;gap:20px}
 .o-terms{font-size:11px;color:#6a6a6a;max-width:560px;line-height:1.6}
 .o-cont{font-size:11px;text-align:right;line-height:1.7;color:#333}.o-cont b{font-family:var(--head);letter-spacing:1px;color:#111}
-/* ---- Мобильная адаптация ---- */
 @media(max-width:900px){
   .app{display:block}
   .form{max-height:none;border-right:none;border-bottom:1px solid #1c1c1c}
   .right{max-height:none}
   input[type=text],input[type=number],input[type=date],select{font-size:16px}
 }
-/* ---- Печать ---- */
 @page{size:A4 landscape;margin:0}
 @media print{
   body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -91,9 +96,10 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
   <div class="form">
     <div class="brandrow">
       <svg class="bolt" viewBox="0 0 24 24"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>
-      <div class="logo">LUDUS <span data-i18n="kp">· КП</span></div>
+      <div class="logo">LUDUS <span data-i18n="kp">- CAMP</span></div>
     </div>
-    <div class="hint" data-i18n="hint">Собери пакет — цена и оффер обновляются справа/ниже. «Скачать PDF» — сверху.</div>
+    <div class="headline" data-i18n="headline">Собери свой идеальный КЭМП</div>
+    <div class="hint sub" data-i18n="hint">Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.</div>
 
     <div class="grp"><label data-i18n="g_client">Клиент и гости</label>
       <input type="text" id="client" data-i18n-ph="ph_client" placeholder="Имя клиента">
@@ -119,19 +125,19 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
         <select id="meallevel" style="flex:1"><option value="standard" data-i18n="ml_std">STANDARD</option><option value="standard_plus" data-i18n="ml_plus">STANDARD+</option><option value="champion" data-i18n="ml_champ">CHAMPION</option></select></div>
       <div class="opt" id="wrap-meal" style="gap:10px"><span data-i18n="o_meal">Спец-питание:</span>
         <select id="mealspec" style="flex:1"><option value="" data-i18n="m_none">нет</option><option value="халяль" data-i18n="m_halal">халяль +15%</option><option value="веган" data-i18n="m_vegan">веган +10%</option></select></div>
-      <div class="opt" style="gap:10px"><span data-i18n="o_welcome">Welcome-пакет:</span>
+      <div class="opt" style="gap:8px"><span data-i18n="o_welcome">Welcome-пакет:</span><span class="tip help" data-tipkey="welcome">ⓘ</span>
         <select id="welcome" style="flex:1"><option value="" data-i18n="w_none">нет</option><option value="базовый" data-i18n="w_basic">базовый 2 800</option><option value="без_шлема" data-i18n="w_nohelm">без шлема 4 700</option><option value="полный" data-i18n="w_full">полный 6 000</option></select></div>
       <div class="qty"><span data-i18n="o_massage">Массаж (сессий, −10%)</span><input type="number" id="massage" value="0" min="0"></div>
       <div class="qty"><span data-i18n="o_privc">Перс. тренировка (чемпион)</span><input type="number" id="privc" value="0" min="0"></div>
       <div class="qty"><span data-i18n="o_privs">Перс. тренировка (стандарт)</span><input type="number" id="privs" value="0" min="0"></div>
+      <div class="fieldhint"><span class="tip" data-tipkey="trainers" data-i18n="pt_prompt">Чемпион и Стандарт — в чём разница?</span></div>
       <label class="opt"><input type="checkbox" id="transfer"> <span data-i18n="o_transfer">Трансфер из аэропорта</span></label>
-      <label class="opt"><input type="checkbox" id="prepay"> <span data-i18n="o_prepay">Онлайн-предоплата −3%</span></label>
+      <label class="opt hl"><input type="checkbox" id="prepay"> <span data-i18n="o_prepay">Онлайн-предоплата: −3% OFF</span></label>
     </div>
   </div>
 
   <div class="right">
     <div class="bar">
-      <div class="t" data-i18n="preview">Превью КП · так уйдёт клиенту</div>
       <div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button><button data-l="it">IT</button></div>
       <button class="dl" onclick="window.print()" data-i18n="download">⬇ Скачать PDF</button>
     </div>
@@ -156,7 +162,6 @@ function calc(s,cfg=PRICES){
  const p=cfg.пакеты[s.пакет];const D=+s.дни||0,N=+s.гостей||0;if(!p||D<=0||N<=0)return null;
  const w=D/7,L=[];
  L.push(["package",s.пакет,D+"d",ставка(p.цены,D)*D]);
- // По умолчанию — одноместное (надбавка включена); галочка "двухместное" её убирает.
  if(!s.double&&p.проживание)L.push(["single","",w+"w",cfg.одноместное_нед*w]);
  let mealDay=p.питание_день;
  if(p.меню){const lvl=(s.meal_level in cfg.меню)?s.meal_level:"standard";mealDay=cfg.меню[lvl].день;
@@ -205,41 +210,47 @@ const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное разм
 const MEALLVL={ru:{standard:"питание STANDARD 3×/день",standard_plus:"питание STANDARD+ 3×/день",champion:"питание CHAMPION 3×/день"},
  en:{standard:"STANDARD board, 3 meals/day",standard_plus:"STANDARD+ board, 3 meals/day",champion:"CHAMPION board, 3 meals/day"},
  it:{standard:"pensione STANDARD, 3 pasti/giorno",standard_plus:"pensione STANDARD+, 3 pasti/giorno",champion:"pensione CHAMPION, 3 pasti/giorno"}};
-// Фразы для блока "Что входит" (раньше были зашиты в includedItems через ru/en тернарники).
 const PH={ru:{program:"Программа: ",accomm:"Проживание: ",meals:"Питание: ",extras:"Дополнительно: ",excursions:"Экскурсии: ",onreq:"по запросу",occ_single:"одноместно",occ_double:"двухместно",nomeal:"без питания",breakfast:"завтрак",halal:"халяль",vegan:"веган",massage:"массаж ×",privc:"перс. тренировки (чемпион) ×",privs:"перс. тренировки ×",transfer:"трансфер"},
  en:{program:"Program: ",accomm:"Accommodation: ",meals:"Meals: ",extras:"Extras: ",excursions:"Excursions: ",onreq:"on request",occ_single:"single",occ_double:"double",nomeal:"no meals",breakfast:"breakfast",halal:"halal",vegan:"vegan",massage:"massage ×",privc:"personal training (champion) ×",privs:"personal training ×",transfer:"transfer"},
  it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"}};
+const TIPS={ru:{welcome:"Экипировка новичка: перчатки, бинты, бутылка, рюкзак, шорты и футболка. В полном — ещё шлем; в базовом — без шлема и перчаток.",
+ trainers:"Чемпион — персональная тренировка с титулованным чемпионом клуба. Стандарт — с опытным штатным тренером."},
+ en:{welcome:"Starter gear: gloves, hand wraps, water bottle, backpack, shorts and t-shirt. Full also includes a helmet; basic — without helmet and gloves.",
+ trainers:"Champion — one-on-one with a titled club champion. Standard — with an experienced in-house coach."},
+ it:{welcome:"Kit iniziale: guantoni, bende, borraccia, zaino, pantaloncini e t-shirt. Nel completo anche il casco; nel base — senza casco e guantoni.",
+ trainers:"Campione — sessione individuale con un campione titolato del club. Standard — con un coach esperto interno."}};
 const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
 
-const UI={ru:{kp:"· КП",hint:"Собери пакет — цена и оффер обновляются справа/ниже. «Скачать PDF» — сверху.",
+const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный КЭМП",hint:"Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.",
  g_client:"Клиент и гости",ph_client:"Имя клиента",guests:"гостей",checkin:"дата заезда",
  g_dur:"Срок (дней)",w1:"1 нед",w2:"2 нед",w4:"1 мес",g_pkg:"Пакет",g_opt:"Опции",
  o_double:"Двухместное размещение (дешевле)",o_addmeals:"Добавить питание 3×/день",o_meallevel:"Уровень питания:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Спец-питание:",m_none:"нет",m_halal:"халяль +15%",m_vegan:"веган +10%",o_welcome:"Welcome-пакет:",
  w_none:"нет",w_basic:"базовый 2 800",w_nohelm:"без шлема 4 700",w_full:"полный 6 000",
  o_massage:"Массаж (сессий, −10%)",o_privc:"Перс. тренировка (чемпион)",o_privs:"Перс. тренировка (стандарт)",
- o_transfer:"Трансфер из аэропорта",o_prepay:"Онлайн-предоплата −3%",
- preview:"Превью КП · так уйдёт клиенту",download:"⬇ Скачать PDF"},
- en:{kp:"· QUOTE",hint:"Build the package — price and offer update on the right/below. “Download PDF” is at the top.",
+ pt_prompt:"Чемпион и Стандарт — в чём разница?",
+ o_transfer:"Трансфер из аэропорта",o_prepay:"Онлайн-предоплата: −3% OFF",download:"⬇ Скачать PDF"},
+ en:{kp:"- CAMP",headline:"Build your perfect CAMP",hint:"Price and terms update on the right/below. Click “Download PDF” at the top.",
  g_client:"Client & guests",ph_client:"Client name",guests:"guests",checkin:"check-in date",
  g_dur:"Duration (days)",w1:"1 wk",w2:"2 wk",w4:"1 mo",g_pkg:"Package",g_opt:"Options",
  o_double:"Double occupancy (cheaper)",o_addmeals:"Add meals 3×/day",o_meallevel:"Meal level:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Special meals:",m_none:"none",m_halal:"halal +15%",m_vegan:"vegan +10%",o_welcome:"Welcome pack:",
  w_none:"none",w_basic:"basic 2,800",w_nohelm:"no helmet 4,700",w_full:"full 6,000",
  o_massage:"Massage (sessions, −10%)",o_privc:"Personal training (champion)",o_privs:"Personal training (standard)",
- o_transfer:"Airport transfer",o_prepay:"Online prepayment −3%",
- preview:"Quote preview · as sent to client",download:"⬇ Download PDF"},
- it:{kp:"· PREVENTIVO",hint:"Componi il pacchetto — prezzo e offerta si aggiornano a destra/sotto. «Scarica PDF» in alto.",
+ pt_prompt:"Champion vs Standard — what's the difference?",
+ o_transfer:"Airport transfer",o_prepay:"Online prepayment: −3% OFF",download:"⬇ Download PDF"},
+ it:{kp:"- CAMP",headline:"Componi il tuo CAMP ideale",hint:"Prezzo e condizioni si aggiornano a destra/sotto. Premi «Scarica PDF» in alto.",
  g_client:"Cliente e ospiti",ph_client:"Nome del cliente",guests:"ospiti",checkin:"data di arrivo",
  g_dur:"Durata (giorni)",w1:"1 sett",w2:"2 sett",w4:"1 mese",g_pkg:"Pacchetto",g_opt:"Opzioni",
  o_double:"Sistemazione doppia (più economica)",o_addmeals:"Aggiungi pasti 3×/giorno",o_meallevel:"Livello pasti:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Pasti speciali:",m_none:"nessuno",m_halal:"halal +15%",m_vegan:"vegano +10%",o_welcome:"Welcome pack:",
  w_none:"nessuno",w_basic:"base 2.800",w_nohelm:"senza casco 4.700",w_full:"completo 6.000",
  o_massage:"Massaggio (sessioni, −10%)",o_privc:"Allenamento pers. (campione)",o_privs:"Allenamento pers. (standard)",
- o_transfer:"Transfer aeroporto",o_prepay:"Acconto online −3%",
- preview:"Anteprima preventivo · come lo riceve il cliente",download:"⬇ Scarica PDF"}};
+ pt_prompt:"Campione e Standard — qual è la differenza?",
+ o_transfer:"Transfer aeroporto",o_prepay:"Acconto online: −3% OFF",download:"⬇ Scarica PDF"}};
 function applyUI(l){document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(UI[l][k]!==undefined)e.textContent=UI[l][k];});
- document.querySelectorAll('[data-i18n-ph]').forEach(e=>{const k=e.getAttribute('data-i18n-ph');if(UI[l][k]!==undefined)e.placeholder=UI[l][k];});}
+ document.querySelectorAll('[data-i18n-ph]').forEach(e=>{const k=e.getAttribute('data-i18n-ph');if(UI[l][k]!==undefined)e.placeholder=UI[l][k];});
+ document.querySelectorAll('[data-tipkey]').forEach(e=>{const k=e.getAttribute('data-tipkey');if(TIPS[l][k]!==undefined)e.setAttribute('data-tip',TIPS[l][k]);});}
 let lang="ru";const $=id=>document.getElementById(id);
 function fmt(n){return n.toLocaleString('ru-RU').replace(/,/g,' ');}
 function months(l){return l==="ru"?["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"]
