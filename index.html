@@ -234,7 +234,7 @@ const TIPS={ru:{welcome:"Экипировка новичка: перчатки, 
 const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
 
 const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный КЭМП",hint:"Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.",
- g_client:"Клиент и гости",ph_client:"Имя клиента",guests:"гостей",checkin:"дата заезда",
+ g_client:"Клиент и гости",ph_client:"Имя клиента",ph_date:"дд.мм.гггг",guests:"гостей",checkin:"дата заезда",
  g_dur:"Срок (дней)",w1:"1 нед",w2:"2 нед",w4:"1 мес",g_pkg:"Пакет",g_opt:"Опции",
  o_double:"Двухместное размещение (дешевле)",o_addmeals:"Добавить питание 3×/день",o_meallevel:"Уровень питания:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Спец-питание:",m_none:"нет",m_halal:"халяль +15%",m_vegan:"веган +10%",o_welcome:"Welcome-пакет:",
@@ -243,7 +243,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Чемпион и Стандарт — в чём разница?",
  o_transfer:"Трансфер из аэропорта",o_prepay:"Онлайн-предоплата: −3% OFF",download:"⬇ Скачать PDF"},
  en:{kp:"- CAMP",headline:"Build your perfect CAMP",hint:"Price and terms update on the right/below. Click “Download PDF” at the top.",
- g_client:"Client & guests",ph_client:"Client name",guests:"guests",checkin:"check-in date",
+ g_client:"Client & guests",ph_client:"Client name",ph_date:"dd/mm/yyyy",guests:"guests",checkin:"check-in date",
  g_dur:"Duration (days)",w1:"1 wk",w2:"2 wk",w4:"1 mo",g_pkg:"Package",g_opt:"Options",
  o_double:"Double occupancy (cheaper)",o_addmeals:"Add meals 3×/day",o_meallevel:"Meal level:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Special meals:",m_none:"none",m_halal:"halal +15%",m_vegan:"vegan +10%",o_welcome:"Welcome pack:",
@@ -252,7 +252,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Champion vs Standard — what's the difference?",
  o_transfer:"Airport transfer",o_prepay:"Online prepayment: −3% OFF",download:"⬇ Download PDF"},
  it:{kp:"- CAMP",headline:"Componi il tuo CAMP ideale",hint:"Prezzo e condizioni si aggiornano a destra/sotto. Premi «Scarica PDF» in alto.",
- g_client:"Cliente e ospiti",ph_client:"Nome del cliente",guests:"ospiti",checkin:"data di arrivo",
+ g_client:"Cliente e ospiti",ph_client:"Nome del cliente",ph_date:"gg/mm/aaaa",guests:"ospiti",checkin:"data di arrivo",
  g_dur:"Durata (giorni)",w1:"1 sett",w2:"2 sett",w4:"1 mese",g_pkg:"Pacchetto",g_opt:"Opzioni",
  o_double:"Sistemazione doppia (più economica)",o_addmeals:"Aggiungi pasti 3×/giorno",o_meallevel:"Livello pasti:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Pasti speciali:",m_none:"nessuno",m_halal:"halal +15%",m_vegan:"vegano +10%",o_welcome:"Welcome pack:",
@@ -261,7 +261,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Campione e Standard — qual è la differenza?",
  o_transfer:"Transfer aeroporto",o_prepay:"Acconto online: −3% OFF",download:"⬇ Scarica PDF"},
  fr:{kp:"- CAMP",headline:"Composez votre CAMP idéal",hint:"Le prix et les conditions se mettent à jour à droite/ci-dessous. Cliquez sur « Télécharger le PDF » en haut.",
- g_client:"Client et invités",ph_client:"Nom du client",guests:"invités",checkin:"date d'arrivée",
+ g_client:"Client et invités",ph_client:"Nom du client",ph_date:"jj/mm/aaaa",guests:"invités",checkin:"date d'arrivée",
  g_dur:"Durée (jours)",w1:"1 sem",w2:"2 sem",w4:"1 mois",g_pkg:"Forfait",g_opt:"Options",
  o_double:"Chambre double (moins chère)",o_addmeals:"Ajouter les repas 3×/jour",o_meallevel:"Niveau des repas :",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Repas spéciaux :",m_none:"aucun",m_halal:"halal +15%",m_vegan:"végétalien +10%",o_welcome:"Welcome pack :",
@@ -271,8 +271,17 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  o_transfer:"Transfert aéroport",o_prepay:"Acompte en ligne : −3% OFF",download:"⬇ Télécharger le PDF"}};
 function applyUI(l){document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(UI[l][k]!==undefined)e.textContent=UI[l][k];});
  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{const k=e.getAttribute('data-i18n-ph');if(UI[l][k]!==undefined)e.placeholder=UI[l][k];});
- document.querySelectorAll('[data-tipkey]').forEach(e=>{const k=e.getAttribute('data-tipkey');if(TIPS[l][k]!==undefined)e.setAttribute('data-tip',TIPS[l][k]);});}
+ document.querySelectorAll('[data-tipkey]').forEach(e=>{const k=e.getAttribute('data-tipkey');if(TIPS[l][k]!==undefined)e.setAttribute('data-tip',TIPS[l][k]);});
+ плейсхолдерДаты(l);}
+/* Поле <input type="date"> рисует подсказку формата силами браузера (локаль системы),
+   поэтому у русского Chrome там «дд.мм.гггг» на любом языке интерфейса.
+   Решение: пока дата не выбрана — держим поле текстовым со своим переводимым плейсхолдером,
+   а по клику превращаем в настоящее поле даты и открываем календарь. */
+function плейсхолдерДаты(l){const d=document.getElementById('start');if(!d)return;
+ if(!d.value){d.type='text';d.placeholder=UI[l].ph_date;}}
 let lang="ru";const $=id=>document.getElementById(id);
+$('start').addEventListener('focus',function(){this.type='date';if(this.showPicker){try{this.showPicker();}catch(e){}}});
+$('start').addEventListener('blur',function(){if(!this.value)плейсхолдерДаты(lang);});
 function fmt(n){return n.toLocaleString('ru-RU').replace(/,/g,' ');}
 function months(l){return l==="ru"?["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"]
  :l==="it"?["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"]
