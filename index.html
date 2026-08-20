@@ -138,7 +138,7 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
 
   <div class="right">
     <div class="bar">
-      <div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button><button data-l="it">IT</button></div>
+      <div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button><button data-l="it">IT</button><button data-l="fr">FR</button></div>
       <button class="dl" onclick="window.print()" data-i18n="download">⬇ Скачать PDF</button>
     </div>
     <div class="offerwrap" id="offerwrap"><div class="offer" id="offer"></div></div>
@@ -194,7 +194,11 @@ const T={ru:{lab:"Персональное предложение",client:"Кл�
  it:{lab:"Offerta Personale",client:"Cliente",guests:"Ospiti",dates:"Date",nights:"Giorni",
  inc:"Cosa è incluso",bd:"Dettaglio prezzo",sub:"Subtotale",prepay:"Acconto −3%",vat:"IVA 7% (in aggiunta)",total:"Totale",t1:"IL TUO",t2:"camp",
  subttl:"Un programma su misura per i tuoi obiettivi · LUDUS, Chalong · Phuket",
- terms:"I prezzi sono al netto dell'IVA; l'IVA del 7% viene aggiunta e inclusa nel Totale. Offerta valida 14 giorni. Escursioni, servizi medici e riprese — su richiesta. Conferma finale al momento della prenotazione e dell'acconto.",openLabel:"Aperto tutti i giorni 06:30 – 22:00",empty:"Seleziona pacchetto, durata e numero di ospiti…",dash:"—"}};
+ terms:"I prezzi sono al netto dell'IVA; l'IVA del 7% viene aggiunta e inclusa nel Totale. Offerta valida 14 giorni. Escursioni, servizi medici e riprese — su richiesta. Conferma finale al momento della prenotazione e dell'acconto.",openLabel:"Aperto tutti i giorni 06:30 – 22:00",empty:"Seleziona pacchetto, durata e numero di ospiti…",dash:"—"},
+ fr:{lab:"Offre Personnalisée",client:"Client",guests:"Invités",dates:"Dates",nights:"Jours",
+ inc:"Ce qui est inclus",bd:"Détail du prix",sub:"Sous-total",prepay:"Acompte −3%",vat:"TVA 7% (en sus)",total:"Total",t1:"VOTRE",t2:"camp",
+ subttl:"Un programme adapté à vos objectifs · LUDUS, Chalong · Phuket",
+ terms:"Les prix sont indiqués hors taxes ; la TVA de 7% est ajoutée et incluse dans le Total. Offre valable 14 jours. Excursions, services médicaux et tournage — sur demande. Confirmation finale à la réservation et au versement de l'acompte.",openLabel:"Ouvert tous les jours 06:30 – 22:00",empty:"Sélectionnez le forfait, la durée et le nombre d'invités…",dash:"—"}};
 const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное размещение",meal_plus:"Меню STANDARD+",meal_champ:"Меню CHAMPION",
  meal_add:lvl=>"Питание 3×/день · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Питание халяль (+15%)",vegan:"Питание веган (+10%)",welcome:w=>"Welcome-пакет ("+w+")",
@@ -206,19 +210,27 @@ const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное разм
  it:{package:p=>"Pacchetto "+p,single:"Sistemazione singola",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
  meal_add:lvl=>"Pasti 3×/giorno · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Pasti halal (+15%)",vegan:"Pasti vegani (+10%)",welcome:w=>"Welcome pack ("+({полный:"completo",без_шлема:"senza casco",базовый:"base"}[w]||w)+")",
- massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto"}};
+ massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto"},
+ fr:{package:p=>"Forfait "+p,single:"Chambre individuelle",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
+ meal_add:lvl=>"Repas 3×/jour · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
+ halal:"Repas halal (+15%)",vegan:"Repas végétaliens (+10%)",welcome:w=>"Welcome pack ("+({полный:"complet",без_шлема:"sans casque",базовый:"de base"}[w]||w)+")",
+ massage:"Massage sportif (−10%)",priv_champ:"Entraînement personnel — champion (−15%)",priv_std:"Entraînement personnel — standard (−15%)",transfer:"Transfert aéroport"}};
 const MEALLVL={ru:{standard:"питание STANDARD 3×/день",standard_plus:"питание STANDARD+ 3×/день",champion:"питание CHAMPION 3×/день"},
  en:{standard:"STANDARD board, 3 meals/day",standard_plus:"STANDARD+ board, 3 meals/day",champion:"CHAMPION board, 3 meals/day"},
- it:{standard:"pensione STANDARD, 3 pasti/giorno",standard_plus:"pensione STANDARD+, 3 pasti/giorno",champion:"pensione CHAMPION, 3 pasti/giorno"}};
+ it:{standard:"pensione STANDARD, 3 pasti/giorno",standard_plus:"pensione STANDARD+, 3 pasti/giorno",champion:"pensione CHAMPION, 3 pasti/giorno"},
+ fr:{standard:"pension STANDARD, 3 repas/jour",standard_plus:"pension STANDARD+, 3 repas/jour",champion:"pension CHAMPION, 3 repas/jour"}};
 const PH={ru:{program:"Программа: ",accomm:"Проживание: ",meals:"Питание: ",extras:"Дополнительно: ",excursions:"Экскурсии: ",onreq:"по запросу",occ_single:"одноместно",occ_double:"двухместно",nomeal:"без питания",breakfast:"завтрак",halal:"халяль",vegan:"веган",massage:"массаж ×",privc:"перс. тренировки (чемпион) ×",privs:"перс. тренировки ×",transfer:"трансфер"},
  en:{program:"Program: ",accomm:"Accommodation: ",meals:"Meals: ",extras:"Extras: ",excursions:"Excursions: ",onreq:"on request",occ_single:"single",occ_double:"double",nomeal:"no meals",breakfast:"breakfast",halal:"halal",vegan:"vegan",massage:"massage ×",privc:"personal training (champion) ×",privs:"personal training ×",transfer:"transfer"},
- it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"}};
+ it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"},
+ fr:{program:"Programme : ",accomm:"Hébergement : ",meals:"Repas : ",extras:"Suppléments : ",excursions:"Excursions : ",onreq:"sur demande",occ_single:"individuelle",occ_double:"double",nomeal:"sans repas",breakfast:"petit-déjeuner",halal:"halal",vegan:"végétalien",massage:"massage ×",privc:"entraînements personnels (champion) ×",privs:"entraînements personnels ×",transfer:"transfert"}};
 const TIPS={ru:{welcome:"Экипировка новичка: перчатки, бинты, бутылка, рюкзак, шорты и футболка. В полном — ещё шлем; в базовом — без шлема и перчаток.",
  trainers:"Чемпион — персональная тренировка с титулованным чемпионом клуба. Стандарт — с опытным штатным тренером."},
  en:{welcome:"Starter gear: gloves, hand wraps, water bottle, backpack, shorts and t-shirt. Full also includes a helmet; basic — without helmet and gloves.",
  trainers:"Champion — one-on-one with a titled club champion. Standard — with an experienced in-house coach."},
  it:{welcome:"Kit iniziale: guantoni, bende, borraccia, zaino, pantaloncini e t-shirt. Nel completo anche il casco; nel base — senza casco e guantoni.",
- trainers:"Campione — sessione individuale con un campione titolato del club. Standard — con un coach esperto interno."}};
+ trainers:"Campione — sessione individuale con un campione titolato del club. Standard — con un coach esperto interno."},
+ fr:{welcome:"Équipement du débutant : gants, bandes, gourde, sac à dos, short et t-shirt. La version complète inclut aussi un casque ; la version de base — sans casque ni gants.",
+ trainers:"Champion — séance individuelle avec un champion titré du club. Standard — avec un coach expérimenté de l'équipe."}};
 const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
 
 const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный КЭМП",hint:"Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.",
@@ -247,7 +259,16 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  w_none:"nessuno",w_basic:"base 2.800",w_nohelm:"senza casco 4.700",w_full:"completo 6.000",
  o_massage:"Massaggio (sessioni, −10%)",o_privc:"Allenamento pers. (campione)",o_privs:"Allenamento pers. (standard)",
  pt_prompt:"Campione e Standard — qual è la differenza?",
- o_transfer:"Transfer aeroporto",o_prepay:"Acconto online: −3% OFF",download:"⬇ Scarica PDF"}};
+ o_transfer:"Transfer aeroporto",o_prepay:"Acconto online: −3% OFF",download:"⬇ Scarica PDF"},
+ fr:{kp:"- CAMP",headline:"Composez votre CAMP idéal",hint:"Le prix et les conditions se mettent à jour à droite/ci-dessous. Cliquez sur « Télécharger le PDF » en haut.",
+ g_client:"Client et invités",ph_client:"Nom du client",guests:"invités",checkin:"date d'arrivée",
+ g_dur:"Durée (jours)",w1:"1 sem",w2:"2 sem",w4:"1 mois",g_pkg:"Forfait",g_opt:"Options",
+ o_double:"Chambre double (moins chère)",o_addmeals:"Ajouter les repas 3×/jour",o_meallevel:"Niveau des repas :",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_meal:"Repas spéciaux :",m_none:"aucun",m_halal:"halal +15%",m_vegan:"végétalien +10%",o_welcome:"Welcome pack :",
+ w_none:"aucun",w_basic:"de base 2 800",w_nohelm:"sans casque 4 700",w_full:"complet 6 000",
+ o_massage:"Massage (séances, −10%)",o_privc:"Entraînement pers. (champion)",o_privs:"Entraînement pers. (standard)",
+ pt_prompt:"Champion et Standard — quelle différence ?",
+ o_transfer:"Transfert aéroport",o_prepay:"Acompte en ligne : −3% OFF",download:"⬇ Télécharger le PDF"}};
 function applyUI(l){document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(UI[l][k]!==undefined)e.textContent=UI[l][k];});
  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{const k=e.getAttribute('data-i18n-ph');if(UI[l][k]!==undefined)e.placeholder=UI[l][k];});
  document.querySelectorAll('[data-tipkey]').forEach(e=>{const k=e.getAttribute('data-tipkey');if(TIPS[l][k]!==undefined)e.setAttribute('data-tip',TIPS[l][k]);});}
@@ -255,6 +276,7 @@ let lang="ru";const $=id=>document.getElementById(id);
 function fmt(n){return n.toLocaleString('ru-RU').replace(/,/g,' ');}
 function months(l){return l==="ru"?["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"]
  :l==="it"?["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"]
+ :l==="fr"?["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"]
  :["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];}
 function dstr(iso,l){if(!iso)return T[l].dash;const d=new Date(iso);return d.getDate()+" "+months(l)[d.getMonth()]+" "+d.getFullYear();}
 function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,
