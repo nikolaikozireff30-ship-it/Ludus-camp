@@ -106,7 +106,7 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
       <input type="text" id="client" data-i18n-ph="ph_client" placeholder="Имя клиента">
       <div class="row" style="margin-top:8px">
         <div><input type="number" id="guests" value="1" min="1"><div class="hint" data-i18n="guests" style="margin:4px 0 0">гостей</div></div>
-        <div><input type="date" id="start"><div class="hint" data-i18n="checkin" style="margin:4px 0 0">дата заезда</div></div>
+        <div><input type="date" id="start"><div class="hint" style="margin:4px 0 0"><span data-i18n="checkin">дата заезда</span><span id="seasoninfo" style="display:block;margin-top:3px"></span></div></div>
       </div>
     </div>
 
@@ -154,7 +154,20 @@ const PRICES={курс_thb_usd:35,
  меню:{standard:{нед:0,день:500},standard_plus:{нед:1750,день:750},champion:{нед:3500,день:1000}},
  welcome:{полный:6000,без_шлема:4700,базовый:2800},массаж:625,массаж_скидка:0.10,
  приват:{чемпион:1200,стандарт:800},приват_скидка_кэмпер:0.15,
- трансфер:850,трансфер_мест:4,халяль_pct:0.15,веган_pct:0.10,предоплата_скидка:0.03,vat_pct:0.07};
+ трансфер:850,трансфер_мест:4,
+ сезон:{низкий:1200,высокий:1600,мест_в_номере:2,высокие_месяцы:[11,12,1,2,3]},халяль_pct:0.15,веган_pct:0.10,предоплата_скидка:0.03,vat_pct:0.07};
+
+// Сезон конкретной ночи: ноябрь–март — высокий, остальное — низкий.
+// Считаем именно НОЧИ: заезд 25.10 на 14 дней = 7 ночей октября + 7 ночей ноября.
+function сезон_ночи(d,cfg=PRICES){return cfg.сезон.высокие_месяцы.includes(d.getMonth()+1)?"высокий":"низкий";}
+function ночи_по_сезонам(iso,D,cfg=PRICES){
+ const out={низкий:0,высокий:0,известно:false};
+ if(!iso||!D){out.низкий=D||0;return out;}      // дата не выбрана — считаем по низкому
+ const d0=new Date(iso+"T12:00:00");
+ if(isNaN(d0))  {out.низкий=D;return out;}
+ out.известно=true;
+ for(let i=0;i<D;i++){const d=new Date(d0.getTime()+i*864e5);out[сезон_ночи(d,cfg)]++;}
+ return out;}
 
 function ставка(ц,D){const a=ц[7]/7,b=ц[14]/14,c=ц[28]/28;
  if(D<=7)return a;if(D<=14)return a+(b-a)*(D-7)/7;if(D<=28)return b+(c-b)*(D-14)/14;return c;}
@@ -162,7 +175,12 @@ function calc(s,cfg=PRICES){
  const p=cfg.пакеты[s.пакет];const D=+s.дни||0,N=+s.гостей||0;if(!p||D<=0||N<=0)return null;
  const w=D/7,L=[];
  L.push(["package",s.пакет,D+"d",ставка(p.цены,D)*D]);
+ const ночи=ночи_по_сезонам(s.start,D,cfg);
  if(!s.double&&p.проживание)L.push(["single","",w+"w",cfg.одноместное_нед*w]);
+ if(p.проживание&&ночи.высокий>0){
+  const делят=s.double?cfg.сезон.мест_в_номере:1;   // одноместное — номер целиком
+  const дельта=(cfg.сезон.высокий-cfg.сезон.низкий)/делят;
+  L.push(["season","",ночи.высокий+"×"+дельта,дельта*ночи.высокий]);}
  let mealDay=p.питание_день;
  if(p.меню){const lvl=(s.meal_level in cfg.меню)?s.meal_level:"standard";mealDay=cfg.меню[lvl].день;
   if(cfg.меню[lvl].нед>0)L.push([lvl==="champion"?"meal_champ":"meal_plus","",w+"w",cfg.меню[lvl].нед*w]);}
@@ -203,19 +221,19 @@ const T={ru:{lab:"Персональное предложение",client:"Кл�
 const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное размещение",meal_plus:"Меню STANDARD+",meal_champ:"Меню CHAMPION",
  meal_add:lvl=>"Питание 3×/день · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Питание халяль (+15%)",vegan:"Питание веган (+10%)",welcome:w=>"Welcome-пакет ("+w+")",
- massage:"Массаж спортивный (−10%)",priv_champ:"Персональная тренировка — чемпион (−15%)",priv_std:"Персональная тренировка — стандарт (−15%)",transfer:"Трансфер из аэропорта (машина до 4 чел.)"},
+ massage:"Массаж спортивный (−10%)",priv_champ:"Персональная тренировка — чемпион (−15%)",priv_std:"Персональная тренировка — стандарт (−15%)",transfer:"Трансфер из аэропорта (машина до 4 чел.)",season:"Высокий сезон (ноя–мар), доплата за проживание"},
  en:{package:p=>"Package "+p,single:"Single occupancy",meal_plus:"STANDARD+ menu",meal_champ:"CHAMPION menu",
  meal_add:lvl=>"Meals 3×/day · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Halal meals (+15%)",vegan:"Vegan meals (+10%)",welcome:w=>"Welcome pack ("+({полный:"full",без_шлема:"no helmet",базовый:"basic"}[w]||w)+")",
- massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer (car up to 4 people)"},
+ massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer (car up to 4 people)",season:"High season surcharge (Nov–Mar), accommodation"},
  it:{package:p=>"Pacchetto "+p,single:"Sistemazione singola",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
  meal_add:lvl=>"Pasti 3×/giorno · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Pasti halal (+15%)",vegan:"Pasti vegani (+10%)",welcome:w=>"Welcome pack ("+({полный:"completo",без_шлема:"senza casco",базовый:"base"}[w]||w)+")",
- massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto (auto fino a 4 persone)"},
+ massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto (auto fino a 4 persone)",season:"Supplemento alta stagione (nov–mar), alloggio"},
  fr:{package:p=>"Forfait "+p,single:"Chambre individuelle",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
  meal_add:lvl=>"Repas 3×/jour · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
  halal:"Repas halal (+15%)",vegan:"Repas végétaliens (+10%)",welcome:w=>"Welcome pack ("+({полный:"complet",без_шлема:"sans casque",базовый:"de base"}[w]||w)+")",
- massage:"Massage sportif (−10%)",priv_champ:"Entraînement personnel — champion (−15%)",priv_std:"Entraînement personnel — standard (−15%)",transfer:"Transfert aéroport (voiture jusqu'à 4 personnes)"}};
+ massage:"Massage sportif (−10%)",priv_champ:"Entraînement personnel — champion (−15%)",priv_std:"Entraînement personnel — standard (−15%)",transfer:"Transfert aéroport (voiture jusqu'à 4 personnes)",season:"Supplément haute saison (nov–mars), hébergement"}};
 const MEALLVL={ru:{standard:"питание STANDARD 3×/день",standard_plus:"питание STANDARD+ 3×/день",champion:"питание CHAMPION 3×/день"},
  en:{standard:"STANDARD board, 3 meals/day",standard_plus:"STANDARD+ board, 3 meals/day",champion:"CHAMPION board, 3 meals/day"},
  it:{standard:"pensione STANDARD, 3 pasti/giorno",standard_plus:"pensione STANDARD+, 3 pasti/giorno",champion:"pensione CHAMPION, 3 pasti/giorno"},
@@ -235,7 +253,7 @@ const TIPS={ru:{welcome:"Экипировка новичка: перчатки, 
 const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
 
 const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный КЭМП",hint:"Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.",
- g_client:"Клиент и гости",ph_client:"Имя клиента",ph_date:"дд.мм.гггг",guests:"гостей",checkin:"дата заезда",
+ g_client:"Клиент и гости",ph_client:"Имя клиента",ph_date:"дд.мм.гггг",s_low:"низкий сезон",s_high:"высокий сезон (дороже)",s_mix:"низкий + высокий сезон",s_need:"укажите дату — цена жилья зависит от сезона",guests:"гостей",checkin:"дата заезда",
  g_dur:"Срок (дней)",w1:"1 нед",w2:"2 нед",w4:"1 мес",g_pkg:"Пакет",g_opt:"Опции",
  o_double:"Двухместное размещение (дешевле)",o_addmeals:"Добавить питание 3×/день",o_meallevel:"Уровень питания:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Спец-питание:",m_none:"нет",m_halal:"халяль +15%",m_vegan:"веган +10%",o_welcome:"Welcome-пакет:",
@@ -244,7 +262,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Чемпион и Стандарт — в чём разница?",
  o_transfer:"Трансфер из аэропорта (до 4 чел.)",o_prepay:"Онлайн-предоплата: −3% OFF",download:"⬇ Скачать PDF"},
  en:{kp:"- CAMP",headline:"Build your perfect CAMP",hint:"Price and terms update on the right/below. Click “Download PDF” at the top.",
- g_client:"Client & guests",ph_client:"Client name",ph_date:"dd/mm/yyyy",guests:"guests",checkin:"check-in date",
+ g_client:"Client & guests",ph_client:"Client name",ph_date:"dd/mm/yyyy",s_low:"low season",s_high:"high season (higher rate)",s_mix:"low + high season",s_need:"set the date — accommodation price depends on season",guests:"guests",checkin:"check-in date",
  g_dur:"Duration (days)",w1:"1 wk",w2:"2 wk",w4:"1 mo",g_pkg:"Package",g_opt:"Options",
  o_double:"Double occupancy (cheaper)",o_addmeals:"Add meals 3×/day",o_meallevel:"Meal level:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Special meals:",m_none:"none",m_halal:"halal +15%",m_vegan:"vegan +10%",o_welcome:"Welcome pack:",
@@ -253,7 +271,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Champion vs Standard — what's the difference?",
  o_transfer:"Airport transfer (up to 4 people)",o_prepay:"Online prepayment: −3% OFF",download:"⬇ Download PDF"},
  it:{kp:"- CAMP",headline:"Componi il tuo CAMP ideale",hint:"Prezzo e condizioni si aggiornano a destra/sotto. Premi «Scarica PDF» in alto.",
- g_client:"Cliente e ospiti",ph_client:"Nome del cliente",ph_date:"gg/mm/aaaa",guests:"ospiti",checkin:"data di arrivo",
+ g_client:"Cliente e ospiti",ph_client:"Nome del cliente",ph_date:"gg/mm/aaaa",s_low:"bassa stagione",s_high:"alta stagione (più caro)",s_mix:"bassa + alta stagione",s_need:"inserisci la data — il prezzo dipende dalla stagione",guests:"ospiti",checkin:"data di arrivo",
  g_dur:"Durata (giorni)",w1:"1 sett",w2:"2 sett",w4:"1 mese",g_pkg:"Pacchetto",g_opt:"Opzioni",
  o_double:"Sistemazione doppia (più economica)",o_addmeals:"Aggiungi pasti 3×/giorno",o_meallevel:"Livello pasti:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Pasti speciali:",m_none:"nessuno",m_halal:"halal +15%",m_vegan:"vegano +10%",o_welcome:"Welcome pack:",
@@ -262,7 +280,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Campione e Standard — qual è la differenza?",
  o_transfer:"Transfer aeroporto (fino a 4 persone)",o_prepay:"Acconto online: −3% OFF",download:"⬇ Scarica PDF"},
  fr:{kp:"- CAMP",headline:"Composez votre CAMP idéal",hint:"Le prix et les conditions se mettent à jour à droite/ci-dessous. Cliquez sur « Télécharger le PDF » en haut.",
- g_client:"Client et invités",ph_client:"Nom du client",ph_date:"jj/mm/aaaa",guests:"invités",checkin:"date d'arrivée",
+ g_client:"Client et invités",ph_client:"Nom du client",ph_date:"jj/mm/aaaa",s_low:"basse saison",s_high:"haute saison (plus cher)",s_mix:"basse + haute saison",s_need:"indiquez la date — le prix dépend de la saison",guests:"invités",checkin:"date d'arrivée",
  g_dur:"Durée (jours)",w1:"1 sem",w2:"2 sem",w4:"1 mois",g_pkg:"Forfait",g_opt:"Options",
  o_double:"Chambre double (moins chère)",o_addmeals:"Ajouter les repas 3×/jour",o_meallevel:"Niveau des repas :",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Repas spéciaux :",m_none:"aucun",m_halal:"halal +15%",m_vegan:"végétalien +10%",o_welcome:"Welcome pack :",
@@ -289,7 +307,7 @@ function months(l){return l==="ru"?["янв","фев","мар","апр","мая"
  :l==="fr"?["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"]
  :["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];}
 function dstr(iso,l){if(!iso)return T[l].dash;const d=new Date(iso);return d.getDate()+" "+months(l)[d.getMonth()]+" "+d.getFullYear();}
-function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,
+function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,start:$('start').value,
  double:$('double').checked,add_meals:$('addmeals').checked,meal_level:$('meallevel').value,meal:$('mealspec').value,welcome:$('welcome').value,
  massage:+$('massage').value,privc:+$('privc').value,privs:+$('privs').value,transfer:$('transfer').checked,prepay:$('prepay').checked};}
 function includedItems(s){const l=lang,p=PRICES.пакеты[s.пакет],h=PH[l],out=[];
@@ -313,6 +331,13 @@ function fitOffer(){const wrap=$('offerwrap'),off=$('offer');const scale=Math.mi
  off.style.transform="scale("+scale+")";wrap.style.height=(off.offsetHeight*scale)+"px";}
 function render(){
  const s=selection(),r=calc(s),t=T[lang],p=PRICES.пакеты[s.пакет];
+ (function(){const el=$('seasoninfo');if(!el)return;
+  if(!p.проживание){el.textContent="";el.style.color="";return;}
+  const н=ночи_по_сезонам(s.start,+s.дни||0);
+  if(!н.известно){el.textContent="⚠ "+UI[lang].s_need;el.style.color="#f4c000";return;}
+  el.style.color=н.высокий?"#f4c000":"";
+  el.textContent=н.высокий&&н.низкий?UI[lang].s_mix+" ("+н.низкий+"+"+н.высокий+")"
+    :(н.высокий?UI[lang].s_high:UI[lang].s_low);})();
  $('wrap-double').classList.toggle('dis',!p.проживание);
  const canAdd=!p.меню&&p.питание_день===0;
  $('wrap-addmeals').style.display=canAdd?'flex':'none';
