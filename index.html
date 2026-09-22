@@ -72,6 +72,9 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
 .o-total .lab{font-family:var(--head);text-transform:uppercase;letter-spacing:2px;font-size:14px;color:#111}
 .o-total .num{font-family:var(--head);font-weight:700;font-size:44px;color:var(--red);line-height:1}
 .o-total .usd{color:#6a6a6a;font-family:var(--head);font-size:15px;margin-left:10px}
+.o-pay{margin-top:10px;font-size:12.5px;color:#333}
+.o-pay>div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}
+.o-pay .pk{color:#6a6a6a}.o-pay b{font-family:var(--head)}
 .o-foot{display:flex;justify-content:space-between;margin-top:26px;gap:20px}
 .o-terms{font-size:11px;color:#6a6a6a;max-width:560px;line-height:1.6}
 .o-cont{font-size:11px;text-align:right;line-height:1.7;color:#333}.o-cont b{font-family:var(--head);letter-spacing:1px;color:#111}
@@ -116,12 +119,17 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
     </div>
 
     <div class="grp"><label data-i18n="g_pkg">Пакет</label>
-      <select id="package"><option>TRAINING</option><option selected>STAY &amp; TRAIN</option><option>ALL-INCLUSIVE</option></select>
+      <select id="package"><option selected>STAY &amp; TRAIN</option><option>ALL-INCLUSIVE</option></select>
+      <div class="fieldhint" style="margin-top:10px"><label data-i18n="g_room" style="margin:0 0 6px">Категория номера</label>
+        <select id="room"><option value="стандарт" data-i18n="room_std">Стандарт (отель-партнёр)</option><option value="премиум" data-i18n="room_prm">Премиум (наш отель)</option></select>
+        <div class="hint" style="margin:5px 0 0"><span class="tip help" data-tipkey="room">ⓘ</span> <span id="roominfo"></span></div></div>
     </div>
 
     <div class="grp"><label data-i18n="g_opt">Опции</label>
       <label class="opt" id="wrap-double"><input type="checkbox" id="double"> <span data-i18n="o_double">Двухместное размещение (дешевле)</span></label>
-      <label class="opt" id="wrap-addmeals"><input type="checkbox" id="addmeals"> <span data-i18n="o_addmeals">Добавить питание 3×/день</span></label>
+      <label class="opt" id="wrap-group"><input type="checkbox" id="group"> <span data-i18n="o_group">Групповая бронь от 8 номеров</span></label>
+      <div class="fieldhint" id="groupinfo" style="display:none;margin:-2px 0 6px"></div>
+      <div class="fieldhint" id="oddinfo" style="color:#f4c000;display:none;margin:-2px 0 6px"></div>
       <div class="opt" id="wrap-meallevel" style="gap:10px"><span data-i18n="o_meallevel">Уровень питания:</span>
         <select id="meallevel" style="flex:1"><option value="standard" data-i18n="ml_std">STANDARD</option><option value="standard_plus" data-i18n="ml_plus">STANDARD+</option><option value="champion" data-i18n="ml_champ">CHAMPION</option></select></div>
       <div class="opt" id="wrap-meal" style="gap:10px"><span data-i18n="o_meal">Спец-питание:</span>
@@ -147,26 +155,59 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
 
 <script>
 const PRICES={курс_thb_usd:35,
- пакеты:{"TRAINING":{цены:{7:5300,14:9600,28:15900},питание_день:0,проживание:false,меню:false},
- "STAY & TRAIN":{цены:{7:11900,14:21100,28:32700},питание_день:210,проживание:true,меню:false},
- "ALL-INCLUSIVE":{цены:{7:13900,14:25100,28:41400},питание_день:500,проживание:true,меню:true}},
- одноместное_нед:4500,
+ // Продукт v6.4 (22.09.2026). Цены — THB на человека, БЕЗ VAT.
+ // «соло» — гость оплачивает весь номер; «пара» — цена с каждого из двоих.
+ // Оба отеля сезонные: низкий 1 апр – 31 окт, высокий 1 ноя – 31 мар.
+ // Жильё в цене: Стандарт — закупка (1200/1600, в пик 2750) + наценка кэмпа 15%;
+ // Премиум — закупка (3551/4776, в пик 6299) + наценка 5%. Комиссия отеля 15% —
+ // доход департамента, в цену клиента не входит.
+ // Группа от 8 НОМЕРОВ (одноместных или двухместных) в нашем отеле: он отдаёт номер
+ // по ставке ×0,8, поэтому дешевеет ТОЛЬКО жилая часть; спорт, питание и сервис те же.
+ // Прайс даёт групповые цены для одноместных; в двухместном номере скидка на номер
+ // делится между двумя гостями — как и сама стоимость номера.
+ пакеты:{
+  "STAY & TRAIN":{питание_день:210,меню:false,
+   стандарт:{соло:{низкий:{7:17200,14:32400,28:61900},высокий:{7:20400,14:38800,28:75700}},
+             пара:{низкий:{7:12350,14:22700,28:41200},высокий:{7:13950,14:25900,28:48100}}},
+   премиум:{соло:{низкий:{7:33600,14:65200,28:132400},высокий:{7:42600,14:83200,28:170900}},
+            пара:{низкий:{7:20550,14:39100,28:76450},высокий:{7:25050,14:48100,28:95700}}},
+   премиум_группа:{соло:{низкий:{7:28400,14:54800,28:110000},высокий:{7:35600,14:69200,28:140900}}}},
+  "ALL-INCLUSIVE":{питание_день:500,меню:true,
+   стандарт:{соло:{низкий:{7:19200,14:36500,28:70600},высокий:{7:22400,14:42900,28:84400}},
+             пара:{низкий:{7:14350,14:26800,28:49900},высокий:{7:15950,14:30000,28:56800}}},
+   премиум:{соло:{низкий:{7:35600,14:69300,28:141100},высокий:{7:44600,14:87300,28:179600}},
+            пара:{низкий:{7:22550,14:43200,28:85150},высокий:{7:27050,14:52200,28:104400}}},
+   премиум_группа:{соло:{низкий:{7:30400,14:58900,28:118700},высокий:{7:37600,14:73300,28:149600}}}}},
  меню:{standard:{нед:0,день:500},standard_plus:{нед:1750,день:750},champion:{нед:3500,день:1000}},
- welcome:{полный:6000,без_шлема:4700,базовый:2800},массаж:625,массаж_скидка:0.10,
- приват:{чемпион:1200,стандарт:800},приват_скидка_кэмпер:0.15,
+ welcome:{полный:6000,без_шлема:4700,базовый:2800},массаж:690,массаж_скидка:0.10,
+ приват:{чемпион:1500,стандарт:800},приват_скидка_кэмпер:0.15,
  трансфер:850,трансфер_мест:4,
- сезон:{низкий:1200,высокий:1600,мест_в_номере:2,высокие_месяцы:[11,12,1,2,3]},халяль_pct:0.15,веган_pct:0.10,предоплата_скидка:0.03,vat_pct:0.07};
+ предоплата_доля:0.40,   // 40% при бронировании, остаток — не позднее 30 дней до заезда
+ премиум_с:"2026-12-01",          // продажи нашего отеля открываются с этой даты
+ группа_от:8,                     // групповая бронь — от 8 номеров одним заездом
+ сезон:{высокие_месяцы:[11,12,1,2,3],   // высокий: 1 ноя – 31 мар, низкий: 1 апр – 31 окт
+  // Пик 20.12–10.01 — отдельная карта обоих отелей (Стандарт 2 750, Премиум 6 299 за ночь).
+  // Надбавки за ночь из прайса v6.4; пара делит номер и надбавку пополам.
+  // У группы своя надбавка: её жилая часть уже со скидкой 20%.
+  // Итог округляем до полусотни — тогда заезд целиком в окне даёт ровно цену из таблицы «ПИК».
+  пик:{с:[12,20],по:[1,10],надбавка:{стандарт:1314,премиум:1600,премиум_группа:8900/7}}},
+ халяль_pct:0.15,веган_pct:0.10,предоплата_скидка:0.03,vat_pct:0.07};
 
 // Сезон конкретной ночи: ноябрь–март — высокий, остальное — низкий.
 // Считаем именно НОЧИ: заезд 25.10 на 14 дней = 7 ночей октября + 7 ночей ноября.
 function сезон_ночи(d,cfg=PRICES){return cfg.сезон.высокие_месяцы.includes(d.getMonth()+1)?"высокий":"низкий";}
+// Пик проходит через Новый год, поэтому проверяем два куска: конец декабря и начало января.
+function пиковая_ночь(d,cfg=PRICES){const п=cfg.сезон.пик;if(!п)return false;
+ const m=d.getMonth()+1,day=d.getDate();
+ return (m===п.с[0]&&day>=п.с[1])||(m===п.по[0]&&day<=п.по[1]);}
 function ночи_по_сезонам(iso,D,cfg=PRICES){
- const out={низкий:0,высокий:0,известно:false};
+ const out={низкий:0,высокий:0,пик:0,известно:false};
  if(!iso||!D){out.низкий=D||0;return out;}      // дата не выбрана — считаем по низкому
  const d0=new Date(iso+"T12:00:00");
  if(isNaN(d0))  {out.низкий=D;return out;}
  out.известно=true;
- for(let i=0;i<D;i++){const d=new Date(d0.getTime()+i*864e5);out[сезон_ночи(d,cfg)]++;}
+ for(let i=0;i<D;i++){const d=new Date(d0.getTime()+i*864e5);
+  out[сезон_ночи(d,cfg)]++; if(пиковая_ночь(d,cfg))out.пик++;}
  return out;}
 
 function ставка(ц,D){const a=ц[7]/7,b=ц[14]/14,c=ц[28]/28;
@@ -174,18 +215,59 @@ function ставка(ц,D){const a=ц[7]/7,b=ц[14]/14,c=ц[28]/28;
 function calc(s,cfg=PRICES){
  const p=cfg.пакеты[s.пакет];const D=+s.дни||0,N=+s.гостей||0;if(!p||D<=0||N<=0)return null;
  const w=D/7,L=[];
- L.push(["package",s.пакет,D+"d",ставка(p.цены,D)*D]);
+ const разм=s.double?"пара":"соло";         // по умолчанию соло — гость оплачивает весь номер
+ const прем=s.room==="премиум";
  const ночи=ночи_по_сезонам(s.start,D,cfg);
- if(!s.double&&p.проживание)L.push(["single","",w+"w",cfg.одноместное_нед*w]);
- if(p.проживание&&ночи.высокий>0){
-  const делят=s.double?cfg.сезон.мест_в_номере:1;   // одноместное — номер целиком
-  const дельта=(cfg.сезон.высокий-cfg.сезон.низкий)/делят;
-  L.push(["season","",ночи.высокий+"×"+дельта,дельта*ночи.высокий]);}
+
+ // Базовая цена берётся прямо из прайса v5.1: он уже учитывает пакет, размещение и сезон.
+ // Для гибкого срока считаем дневную ставку (дольше — дешевле день), для стыка сезонов
+ // складываем ночи низкого и высокого сезона по их собственным ставкам.
+ // Цена пакета для выбранного типа размещения; считаем обоими способами,
+ // чтобы поддержать нечётную компанию (см. ниже строку "odd").
+ // Групповая цена — наш отель от 8 номеров. Номера считаем по размещению:
+ // одноместно 1 гость = 1 номер, двухместно двое делят номер (нечётный занимает свой).
+ const номеров = s.double ? Math.ceil(N/2) : N;
+ const группа = !!s.group && прем && номеров>=cfg.группа_от;
+ function базаДля(рм){
+  const обычная = (пр=>ставка(пр.низкий,D)*ночи.низкий + ставка(пр.высокий,D)*ночи.высокий);
+  if(!прем) return обычная(p.стандарт[рм]);
+  const цена = обычная(p.премиум[рм]);
+  if(!группа) return цена;
+  // Скидка отеля даётся на номер: в одноместном её несёт один гость, в двухместном — двое.
+  const скидкаНомера = обычная(p.премиум.соло) - обычная(p.премиум_группа.соло);
+  return цена - скидкаНомера/(рм==="пара"?2:1);
+ }
+ function пикДля(рм,б){
+  if(!(ночи.пик>0))return 0;
+  const ключ=группа?"премиум_группа":(прем?"премиум":"стандарт");
+  const заНочь=cfg.сезон.пик.надбавка[ключ]/(рм==="пара"?2:1);
+  return Math.round((б+заНочь*ночи.пик)/50)*50-б;
+ }
+ const база=базаДля(разм);
+ const пометка=D+"d"+(ночи.высокий&&ночи.низкий?" · "+ночи.низкий+"+"+ночи.высокий:"");
+ L.push(["package",s.пакет,пометка,база]);
+
+ // Пик касается обоих отелей. Надбавку считаем по ночам, а итог (база + надбавка)
+ // округляем до полусотни — так заезд, целиком попавший в окно, совпадает с
+ // пиковой таблицей продукта до рубля.
+ if(ночи.пик>0){const п=cfg.сезон.пик;
+  const ключ=группа?"премиум_группа":(прем?"премиум":"стандарт");
+  const заНочь=п.надбавка[ключ]/(разм==="пара"?2:1);
+  L.push(["peak","",ночи.пик+"×"+Math.round(заНочь),пикДля(разм,база)]);}
+
+ // Нечётная компания при парном размещении: пары складываются, а одному гостю
+ // делить номер не с кем — он живёт один и платит одноместный тариф.
+ // Разницу добавляем отдельной строкой; делим на N, потому что строки в L
+ // хранятся «на человека» и умножаются на число гостей в конце.
+ const непарный = s.double && N%2===1;
+ if(непарный){
+  const соло=базаДля("соло"), пара=базаДля("пара");
+  const полнСоло=соло+пикДля("соло",соло), полнПара=пара+пикДля("пара",пара);
+  L.push(["odd","",'1×'+Math.round(полнСоло-полнПара),(полнСоло-полнПара)/N]);}
+
  let mealDay=p.питание_день;
  if(p.меню){const lvl=(s.meal_level in cfg.меню)?s.meal_level:"standard";mealDay=cfg.меню[lvl].день;
   if(cfg.меню[lvl].нед>0)L.push([lvl==="champion"?"meal_champ":"meal_plus","",w+"w",cfg.меню[lvl].нед*w]);}
- else if(s.add_meals&&p.питание_день===0){const lvl=(s.meal_level in cfg.меню)?s.meal_level:"standard";mealDay=cfg.меню[lvl].день;
-  L.push(["meal_add",lvl,D+"×"+mealDay,mealDay*D]);}
  if((s.meal==="халяль"||s.meal==="веган")&&mealDay>0){const pc=s.meal==="халяль"?cfg.халяль_pct:cfg.веган_pct;
   L.push([s.meal==="халяль"?"halal":"vegan","","",pc*mealDay*D]);}
  if(s.welcome&&cfg.welcome[s.welcome]!==undefined)L.push(["welcome",s.welcome,"",cfg.welcome[s.welcome]]);
@@ -199,90 +281,96 @@ function calc(s,cfg=PRICES){
  const sub=Math.round(per*N);
  const disc=s.prepay?Math.round(sub*cfg.предоплата_скидка):0;
  const net=sub-disc;const vat=Math.round(net*cfg.vat_pct);const tot=net+vat;
- return{lines:L.map(x=>[x[0],x[1],x[2],Math.round(x[3]),Math.round(x[3]*N)]),N,sub,prepay:!!s.prepay,disc,vat,tot,usd:Math.round(tot/cfg.курс_thb_usd)};
+ // График оплаты: 40% берём от полной суммы к оплате без учёта скидки,
+ // скидка целиком уходит во второй платёж (решение 18.09).
+ const полн=sub+Math.round(sub*cfg.vat_pct);
+ const pay1=Math.round(полн*cfg.предоплата_доля), pay2=tot-pay1;
+ return{lines:L.map(x=>[x[0],x[1],x[2],Math.round(x[3]),Math.round(x[3]*N)]),N,sub,prepay:!!s.prepay,disc,vat,tot,
+        usd:Math.round(tot/cfg.курс_thb_usd),разм,прем,ночи,pay1,pay2,непарный,группа};
 }
+
 const SLOGAN="SHAPE YOUR POWER";
 const T={ru:{lab:"Персональное предложение",client:"Клиент",guests:"Гостей",dates:"Даты",nights:"Дней",
  inc:"Что входит",bd:"Расчёт стоимости",sub:"Подытог",prepay:"Предоплата −3%",vat:"VAT 7% (сверху)",total:"Итого",t1:"ВАШ",t2:"кэмп",
  subttl:"Программа под ваши цели · LUDUS, Чалонг · Пхукет",
- terms:"Цены указаны БЕЗ НДС; НДС 7% начисляется сверху и включён в «Итого». Предложение действительно 14 дней. Экскурсии, медуслуги и съёмка — по запросу. Финальное подтверждение — при бронировании и предоплате.",openLabel:"Ежедневно 06:30 – 22:00",empty:"Заполни пакет, срок и число гостей…",dash:"—"},
+ pay1:"При бронировании (40%)",pay2:"Остаток — за 30 дней до заезда",terms:"Цены указаны БЕЗ НДС; НДС 7% начисляется сверху и включён в «Итого». Бронирование — по предоплате 40%; остаток не позднее чем за 30 дней до заезда. Предоплата невозвратна; при наличии свободных номеров возможен перенос дат. Парная бронь открывается после оплаты обоих гостей. Экскурсии, медуслуги и съёмка — по запросу.",openLabel:"Ежедневно 06:30 – 22:00",empty:"Заполни пакет, срок и число гостей…",dash:"—"},
  en:{lab:"Personal Offer",client:"Client",guests:"Guests",dates:"Dates",nights:"Days",
  inc:"What's included",bd:"Price breakdown",sub:"Subtotal",prepay:"Prepayment −3%",vat:"VAT 7% (on top)",total:"Total",t1:"YOUR",t2:"camp",
  subttl:"A programme tailored to your goals · LUDUS, Chalong · Phuket",
- terms:"Prices are exclusive of VAT; 7% VAT is added on top and included in the Total. Offer valid for 14 days. Excursions, medical services and filming — on request. Final confirmation upon booking and prepayment.",openLabel:"Open daily 06:30 – 22:00",empty:"Select package, duration and number of guests…",dash:"—"},
+ pay1:"On booking (40%)",pay2:"Balance — 30 days before arrival",terms:"Prices are exclusive of VAT; 7% VAT is added on top and included in the Total. Booking requires a 40% prepayment; the balance is due no later than 30 days before arrival. The prepayment is non-refundable; dates may be moved subject to room availability. A twin-share booking opens once both guests have paid. Excursions, medical services and filming — on request.",openLabel:"Open daily 06:30 – 22:00",empty:"Select package, duration and number of guests…",dash:"—"},
  it:{lab:"Offerta Personale",client:"Cliente",guests:"Ospiti",dates:"Date",nights:"Giorni",
  inc:"Cosa è incluso",bd:"Dettaglio prezzo",sub:"Subtotale",prepay:"Acconto −3%",vat:"IVA 7% (in aggiunta)",total:"Totale",t1:"IL TUO",t2:"camp",
  subttl:"Un programma su misura per i tuoi obiettivi · LUDUS, Chalong · Phuket",
- terms:"I prezzi sono al netto dell'IVA; l'IVA del 7% viene aggiunta e inclusa nel Totale. Offerta valida 14 giorni. Escursioni, servizi medici e riprese — su richiesta. Conferma finale al momento della prenotazione e dell'acconto.",openLabel:"Aperto tutti i giorni 06:30 – 22:00",empty:"Seleziona pacchetto, durata e numero di ospiti…",dash:"—"},
+ pay1:"Alla prenotazione (40%)",pay2:"Saldo — 30 giorni prima dell'arrivo",terms:"I prezzi sono al netto dell'IVA; l'IVA del 7% viene aggiunta e inclusa nel Totale. La prenotazione richiede un acconto del 40%; il saldo entro 30 giorni prima dell'arrivo. L'acconto non è rimborsabile; le date possono essere spostate se ci sono camere disponibili. La prenotazione in doppia si apre dopo il pagamento di entrambi. Escursioni, servizi medici e riprese — su richiesta.",openLabel:"Aperto tutti i giorni 06:30 – 22:00",empty:"Seleziona pacchetto, durata e numero di ospiti…",dash:"—"},
  fr:{lab:"Offre Personnalisée",client:"Client",guests:"Invités",dates:"Dates",nights:"Jours",
  inc:"Ce qui est inclus",bd:"Détail du prix",sub:"Sous-total",prepay:"Acompte −3%",vat:"TVA 7% (en sus)",total:"Total",t1:"VOTRE",t2:"camp",
  subttl:"Un programme adapté à vos objectifs · LUDUS, Chalong · Phuket",
- terms:"Les prix sont indiqués hors taxes ; la TVA de 7% est ajoutée et incluse dans le Total. Offre valable 14 jours. Excursions, services médicaux et tournage — sur demande. Confirmation finale à la réservation et au versement de l'acompte.",openLabel:"Ouvert tous les jours 06:30 – 22:00",empty:"Sélectionnez le forfait, la durée et le nombre d'invités…",dash:"—"}};
-const LN={ru:{package:p=>"Пакет "+p,single:"Одноместное размещение",meal_plus:"Меню STANDARD+",meal_champ:"Меню CHAMPION",
- meal_add:lvl=>"Питание 3×/день · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
+ pay1:"À la réservation (40%)",pay2:"Solde — 30 jours avant l'arrivée",terms:"Les prix sont indiqués hors taxes ; la TVA de 7% est ajoutée et incluse dans le Total. La réservation exige un acompte de 40% ; le solde au plus tard 30 jours avant l'arrivée. L'acompte n'est pas remboursable ; les dates peuvent être décalées selon les disponibilités. La réservation en double s'ouvre après paiement des deux invités. Excursions, services médicaux et tournage — sur demande.",openLabel:"Ouvert tous les jours 06:30 – 22:00",empty:"Sélectionnez le forfait, la durée et le nombre d'invités…",dash:"—"}};
+const LN={ru:{package:p=>"Пакет "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Одноместное размещение",meal_plus:"Меню STANDARD+",meal_champ:"Меню CHAMPION",
  halal:"Питание халяль (+15%)",vegan:"Питание веган (+10%)",welcome:w=>"Welcome-пакет ("+w+")",
- massage:"Массаж спортивный (−10%)",priv_champ:"Персональная тренировка — чемпион (−15%)",priv_std:"Персональная тренировка — стандарт (−15%)",transfer:"Трансфер из аэропорта (машина до 4 чел.)",season:"Высокий сезон (ноя–мар), доплата за проживание"},
- en:{package:p=>"Package "+p,single:"Single occupancy",meal_plus:"STANDARD+ menu",meal_champ:"CHAMPION menu",
- meal_add:lvl=>"Meals 3×/day · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
+ massage:"Массаж спортивный (−10%)",priv_champ:"Персональная тренировка — чемпион (−15%)",priv_std:"Персональная тренировка — стандарт (−15%)",transfer:"Трансфер из аэропорта (машина до 4 чел.)",peak:"Новогодний пик (20 дек – 10 янв), доплата за номер",odd:"Непарный гость — одноместный тариф",season:"Высокий сезон (ноя–мар), доплата за проживание"},
+ en:{package:p=>"Package "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Single occupancy",meal_plus:"STANDARD+ menu",meal_champ:"CHAMPION menu",
  halal:"Halal meals (+15%)",vegan:"Vegan meals (+10%)",welcome:w=>"Welcome pack ("+({полный:"full",без_шлема:"no helmet",базовый:"basic"}[w]||w)+")",
- massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer (car up to 4 people)",season:"High season surcharge (Nov–Mar), accommodation"},
- it:{package:p=>"Pacchetto "+p,single:"Sistemazione singola",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
- meal_add:lvl=>"Pasti 3×/giorno · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
+ massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer (car up to 4 people)",peak:"New Year peak (20 Dec – 10 Jan), room surcharge",odd:"Unpaired guest — single occupancy",season:"High season surcharge (Nov–Mar), accommodation"},
+ it:{package:p=>"Pacchetto "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Sistemazione singola",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
  halal:"Pasti halal (+15%)",vegan:"Pasti vegani (+10%)",welcome:w=>"Welcome pack ("+({полный:"completo",без_шлема:"senza casco",базовый:"base"}[w]||w)+")",
- massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto (auto fino a 4 persone)",season:"Supplemento alta stagione (nov–mar), alloggio"},
- fr:{package:p=>"Forfait "+p,single:"Chambre individuelle",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
- meal_add:lvl=>"Repas 3×/jour · "+({standard:"STANDARD",standard_plus:"STANDARD+",champion:"CHAMPION"}[lvl]||lvl),
+ massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto (auto fino a 4 persone)",peak:"Picco di Capodanno (20 dic – 10 gen), supplemento camera",odd:"Ospite senza coppia — sistemazione singola",season:"Supplemento alta stagione (nov–mar), alloggio"},
+ fr:{package:p=>"Forfait "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Chambre individuelle",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
  halal:"Repas halal (+15%)",vegan:"Repas végétaliens (+10%)",welcome:w=>"Welcome pack ("+({полный:"complet",без_шлема:"sans casque",базовый:"de base"}[w]||w)+")",
- massage:"Massage sportif (−10%)",priv_champ:"Entraînement personnel — champion (−15%)",priv_std:"Entraînement personnel — standard (−15%)",transfer:"Transfert aéroport (voiture jusqu'à 4 personnes)",season:"Supplément haute saison (nov–mars), hébergement"}};
+ massage:"Massage sportif (−10%)",priv_champ:"Entraînement personnel — champion (−15%)",priv_std:"Entraînement personnel — standard (−15%)",transfer:"Transfert aéroport (voiture jusqu'à 4 personnes)",peak:"Pic du Nouvel An (20 déc – 10 janv), supplément chambre",odd:"Invité sans binôme — chambre individuelle",season:"Supplément haute saison (nov–mars), hébergement"}};
 const MEALLVL={ru:{standard:"питание STANDARD 3×/день",standard_plus:"питание STANDARD+ 3×/день",champion:"питание CHAMPION 3×/день"},
  en:{standard:"STANDARD board, 3 meals/day",standard_plus:"STANDARD+ board, 3 meals/day",champion:"CHAMPION board, 3 meals/day"},
  it:{standard:"pensione STANDARD, 3 pasti/giorno",standard_plus:"pensione STANDARD+, 3 pasti/giorno",champion:"pensione CHAMPION, 3 pasti/giorno"},
  fr:{standard:"pension STANDARD, 3 repas/jour",standard_plus:"pension STANDARD+, 3 repas/jour",champion:"pension CHAMPION, 3 repas/jour"}};
-const PH={ru:{program:"Программа: ",accomm:"Проживание: ",meals:"Питание: ",extras:"Дополнительно: ",excursions:"Экскурсии: ",onreq:"по запросу",occ_single:"одноместно",occ_double:"двухместно",nomeal:"без питания",breakfast:"завтрак",halal:"халяль",vegan:"веган",massage:"массаж ×",privc:"перс. тренировки (чемпион) ×",privs:"перс. тренировки ×",transfer:"трансфер"},
- en:{program:"Program: ",accomm:"Accommodation: ",meals:"Meals: ",extras:"Extras: ",excursions:"Excursions: ",onreq:"on request",occ_single:"single",occ_double:"double",nomeal:"no meals",breakfast:"breakfast",halal:"halal",vegan:"vegan",massage:"massage ×",privc:"personal training (champion) ×",privs:"personal training ×",transfer:"transfer"},
- it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"},
- fr:{program:"Programme : ",accomm:"Hébergement : ",meals:"Repas : ",extras:"Suppléments : ",excursions:"Excursions : ",onreq:"sur demande",occ_single:"individuelle",occ_double:"double",nomeal:"sans repas",breakfast:"petit-déjeuner",halal:"halal",vegan:"végétalien",massage:"massage ×",privc:"entraînements personnels (champion) ×",privs:"entraînements personnels ×",transfer:"transfert"}};
+const PH={ru:{program:"Программа: ",accomm:"Проживание: ",meals:"Питание: ",extras:"Дополнительно: ",excursions:"Экскурсии: ",onreq:"по запросу",occ_single:"одноместно",occ_double:"двухместно",room_std:"Стандарт",room_prm:"Премиум",pair_note:"Парная цена: указана с человека; бронь подтверждается после оплаты обоих гостей",group_tag:"группа 8+",group_note:"Групповая цена: от 8 номеров одним заездом, жилая часть −20%",nomeal:"без питания",breakfast:"завтрак",halal:"халяль",vegan:"веган",massage:"массаж ×",privc:"перс. тренировки (чемпион) ×",privs:"перс. тренировки ×",transfer:"трансфер"},
+ en:{program:"Program: ",accomm:"Accommodation: ",meals:"Meals: ",extras:"Extras: ",excursions:"Excursions: ",onreq:"on request",occ_single:"single",occ_double:"twin share",room_std:"Standard",room_prm:"Premium",pair_note:"Couple rate: shown per person; the booking is confirmed once both guests have paid",group_tag:"group 8+",group_note:"Group rate: 8+ rooms in one booking, accommodation −20%",nomeal:"no meals",breakfast:"breakfast",halal:"halal",vegan:"vegan",massage:"massage ×",privc:"personal training (champion) ×",privs:"personal training ×",transfer:"transfer"},
+ it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia condivisa",room_std:"Standard",room_prm:"Premium",pair_note:"Tariffa coppia: indicata a persona; la prenotazione si conferma dopo il pagamento di entrambi",group_tag:"gruppo 8+",group_note:"Tariffa gruppo: da 8 camere in una prenotazione, alloggio −20%",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"},
+ fr:{program:"Programme : ",accomm:"Hébergement : ",meals:"Repas : ",extras:"Suppléments : ",excursions:"Excursions : ",onreq:"sur demande",occ_single:"individuelle",occ_double:"double partagée",room_std:"Standard",room_prm:"Premium",pair_note:"Tarif couple : indiqué par personne ; la réservation est confirmée après paiement des deux",group_tag:"groupe 8+",group_note:"Tarif groupe : dès 8 chambres en une réservation, hébergement −20%",nomeal:"sans repas",breakfast:"petit-déjeuner",halal:"halal",vegan:"végétalien",massage:"massage ×",privc:"entraînements personnels (champion) ×",privs:"entraînements personnels ×",transfer:"transfert"}};
 const TIPS={ru:{welcome:"Экипировка новичка: перчатки, бинты, бутылка, рюкзак, шорты и футболка. В полном — ещё шлем; в базовом — без шлема и перчаток.",
- trainers:"Чемпион — персональная тренировка с титулованным чемпионом клуба. Стандарт — с опытным штатным тренером."},
+ trainers:"Чемпион — персональная тренировка с титулованным чемпионом клуба. Стандарт — с опытным штатным тренером.",
+ room:"Разница только в отеле. Стандарт — проверенный отель-партнёр, цена зависит от сезона. Премиум — наш собственный отель, одна цена круглый год, продажи с 1 декабря 2026. Тренировки, питание, сервис и всё остальное в пакете — одинаковые."},
  en:{welcome:"Starter gear: gloves, hand wraps, water bottle, backpack, shorts and t-shirt. Full also includes a helmet; basic — without helmet and gloves.",
- trainers:"Champion — one-on-one with a titled club champion. Standard — with an experienced in-house coach."},
+ trainers:"Champion — one-on-one with a titled club champion. Standard — with an experienced in-house coach.",
+ room:"The only difference is the hotel. Standard — our trusted partner hotel, rate depends on season. Premium — our own hotel, one rate all year, on sale from 1 December 2026. Training, meals, service and everything else in the package are identical."},
  it:{welcome:"Kit iniziale: guantoni, bende, borraccia, zaino, pantaloncini e t-shirt. Nel completo anche il casco; nel base — senza casco e guantoni.",
- trainers:"Campione — sessione individuale con un campione titolato del club. Standard — con un coach esperto interno."},
+ trainers:"Campione — sessione individuale con un campione titolato del club. Standard — con un coach esperto interno.",
+ room:"L'unica differenza è l'hotel. Standard — hotel partner di fiducia, tariffa stagionale. Premium — il nostro hotel, tariffa unica tutto l'anno, in vendita dal 1° dicembre 2026. Allenamenti, pasti e servizi sono identici."},
  fr:{welcome:"Équipement du débutant : gants, bandes, gourde, sac à dos, short et t-shirt. La version complète inclut aussi un casque ; la version de base — sans casque ni gants.",
- trainers:"Champion — séance individuelle avec un champion titré du club. Standard — avec un coach expérimenté de l'équipe."}};
+ trainers:"Champion — séance individuelle avec un champion titré du club. Standard — avec un coach expérimenté de l'équipe.",
+ room:"La seule différence est l'hôtel. Standard — hôtel partenaire de confiance, tarif selon la saison. Premium — notre propre hôtel, tarif unique toute l'année, en vente dès le 1er décembre 2026. Entraînements, repas et services sont identiques."}};
 const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
 
 const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный КЭМП",hint:"Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.",
- g_client:"Клиент и гости",ph_client:"Имя клиента",ph_date:"дд.мм.гггг",s_low:"низкий сезон",s_high:"высокий сезон (дороже)",s_mix:"низкий + высокий сезон",s_need:"укажите дату — цена жилья зависит от сезона",guests:"гостей",checkin:"дата заезда",
+ g_client:"Клиент и гости",ph_client:"Имя клиента",ph_date:"дд.мм.гггг",s_low:"низкий сезон",s_high:"высокий сезон (дороже)",s_mix:"низкий + высокий сезон",s_need:"укажите дату — цена жилья зависит от сезона",s_flat:"Премиум — одна цена круглый год",s_peak:"новогодний пик",odd_warn:"нечётное число гостей: одному не с кем делить номер — для него считается одноместный тариф",o_group:"Групповая бронь от 8 номеров",g_yes:"групповая цена применена: номеров — {r}, жилая часть −20%",g_no:"групповая цена НЕ применена: нужен Премиум и от {n} номеров, сейчас {r}",g_room:"Категория номера",room_std:"Стандарт (отель-партнёр)",room_prm:"Премиум (наш отель)",r_note:"Категория меняет только отель — программа, питание и сервис одинаковые",r_soon:"Премиум в продаже с 1 декабря 2026",guests:"гостей",checkin:"дата заезда",
  g_dur:"Срок (дней)",w1:"1 нед",w2:"2 нед",w4:"1 мес",g_pkg:"Пакет",g_opt:"Опции",
- o_double:"Двухместное размещение (дешевле)",o_addmeals:"Добавить питание 3×/день",o_meallevel:"Уровень питания:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_double:"Пара — двухместно (цена с человека)",o_meallevel:"Уровень питания:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Спец-питание:",m_none:"нет",m_halal:"халяль +15%",m_vegan:"веган +10%",o_welcome:"Welcome-пакет:",
  w_none:"нет",w_basic:"базовый 2 800",w_nohelm:"без шлема 4 700",w_full:"полный 6 000",
  o_massage:"Массаж (сессий, −10%)",o_privc:"Перс. тренировка (чемпион)",o_privs:"Перс. тренировка (стандарт)",
  pt_prompt:"Чемпион и Стандарт — в чём разница?",
  o_transfer:"Трансфер из аэропорта (до 4 чел.)",o_prepay:"Онлайн-предоплата: −3% OFF",download:"⬇ Скачать PDF"},
  en:{kp:"- CAMP",headline:"Build your perfect CAMP",hint:"Price and terms update on the right/below. Click “Download PDF” at the top.",
- g_client:"Client & guests",ph_client:"Client name",ph_date:"dd/mm/yyyy",s_low:"low season",s_high:"high season (higher rate)",s_mix:"low + high season",s_need:"set the date — accommodation price depends on season",guests:"guests",checkin:"check-in date",
+ g_client:"Client & guests",ph_client:"Client name",ph_date:"dd/mm/yyyy",s_low:"low season",s_high:"high season (higher rate)",s_mix:"low + high season",s_need:"set the date — accommodation price depends on season",s_flat:"Premium — one rate all year",s_peak:"New Year peak",odd_warn:"odd number of guests: one has nobody to share with — single occupancy is charged for them",o_group:"Group booking, 8+ rooms",g_yes:"group rate applied: {r} rooms, accommodation −20%",g_no:"group rate NOT applied: requires Premium and {n}+ rooms, currently {r}",g_room:"Room category",room_std:"Standard (partner hotel)",room_prm:"Premium (our hotel)",r_note:"Category changes the hotel only — training, meals and service are identical",r_soon:"Premium goes on sale 1 December 2026",guests:"guests",checkin:"check-in date",
  g_dur:"Duration (days)",w1:"1 wk",w2:"2 wk",w4:"1 mo",g_pkg:"Package",g_opt:"Options",
- o_double:"Double occupancy (cheaper)",o_addmeals:"Add meals 3×/day",o_meallevel:"Meal level:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_double:"Couple — twin room (price per person)",o_meallevel:"Meal level:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Special meals:",m_none:"none",m_halal:"halal +15%",m_vegan:"vegan +10%",o_welcome:"Welcome pack:",
  w_none:"none",w_basic:"basic 2,800",w_nohelm:"no helmet 4,700",w_full:"full 6,000",
  o_massage:"Massage (sessions, −10%)",o_privc:"Personal training (champion)",o_privs:"Personal training (standard)",
  pt_prompt:"Champion vs Standard — what's the difference?",
  o_transfer:"Airport transfer (up to 4 people)",o_prepay:"Online prepayment: −3% OFF",download:"⬇ Download PDF"},
  it:{kp:"- CAMP",headline:"Componi il tuo CAMP ideale",hint:"Prezzo e condizioni si aggiornano a destra/sotto. Premi «Scarica PDF» in alto.",
- g_client:"Cliente e ospiti",ph_client:"Nome del cliente",ph_date:"gg/mm/aaaa",s_low:"bassa stagione",s_high:"alta stagione (più caro)",s_mix:"bassa + alta stagione",s_need:"inserisci la data — il prezzo dipende dalla stagione",guests:"ospiti",checkin:"data di arrivo",
+ g_client:"Cliente e ospiti",ph_client:"Nome del cliente",ph_date:"gg/mm/aaaa",s_low:"bassa stagione",s_high:"alta stagione (più caro)",s_mix:"bassa + alta stagione",s_need:"inserisci la data — il prezzo dipende dalla stagione",s_flat:"Premium — tariffa unica tutto l'anno",s_peak:"picco di Capodanno",odd_warn:"numero dispari di ospiti: uno resta senza compagno — per lui si applica la singola",o_group:"Prenotazione di gruppo da 8 camere",g_yes:"tariffa gruppo applicata: {r} camere, alloggio −20%",g_no:"tariffa gruppo NON applicata: servono Premium e almeno {n} camere, ora {r}",g_room:"Categoria camera",room_std:"Standard (hotel partner)",room_prm:"Premium (nostro hotel)",r_note:"La categoria cambia solo l'hotel — allenamenti, pasti e servizi restano uguali",r_soon:"Premium in vendita dal 1° dicembre 2026",guests:"ospiti",checkin:"data di arrivo",
  g_dur:"Durata (giorni)",w1:"1 sett",w2:"2 sett",w4:"1 mese",g_pkg:"Pacchetto",g_opt:"Opzioni",
- o_double:"Sistemazione doppia (più economica)",o_addmeals:"Aggiungi pasti 3×/giorno",o_meallevel:"Livello pasti:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_double:"Coppia — camera doppia (prezzo a persona)",o_meallevel:"Livello pasti:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Pasti speciali:",m_none:"nessuno",m_halal:"halal +15%",m_vegan:"vegano +10%",o_welcome:"Welcome pack:",
  w_none:"nessuno",w_basic:"base 2.800",w_nohelm:"senza casco 4.700",w_full:"completo 6.000",
  o_massage:"Massaggio (sessioni, −10%)",o_privc:"Allenamento pers. (campione)",o_privs:"Allenamento pers. (standard)",
  pt_prompt:"Campione e Standard — qual è la differenza?",
  o_transfer:"Transfer aeroporto (fino a 4 persone)",o_prepay:"Acconto online: −3% OFF",download:"⬇ Scarica PDF"},
  fr:{kp:"- CAMP",headline:"Composez votre CAMP idéal",hint:"Le prix et les conditions se mettent à jour à droite/ci-dessous. Cliquez sur « Télécharger le PDF » en haut.",
- g_client:"Client et invités",ph_client:"Nom du client",ph_date:"jj/mm/aaaa",s_low:"basse saison",s_high:"haute saison (plus cher)",s_mix:"basse + haute saison",s_need:"indiquez la date — le prix dépend de la saison",guests:"invités",checkin:"date d'arrivée",
+ g_client:"Client et invités",ph_client:"Nom du client",ph_date:"jj/mm/aaaa",s_low:"basse saison",s_high:"haute saison (plus cher)",s_mix:"basse + haute saison",s_need:"indiquez la date — le prix dépend de la saison",s_flat:"Premium — tarif unique toute l'année",s_peak:"pic du Nouvel An",odd_warn:"nombre impair d'invités : l'un se retrouve seul — le tarif individuel s'applique pour lui",o_group:"Réservation de groupe dès 8 chambres",g_yes:"tarif groupe appliqué : {r} chambres, hébergement −20%",g_no:"tarif groupe NON appliqué : exige Premium et {n} chambres minimum, actuellement {r}",g_room:"Catégorie de chambre",room_std:"Standard (hôtel partenaire)",room_prm:"Premium (notre hôtel)",r_note:"La catégorie ne change que l'hôtel — entraînements, repas et services identiques",r_soon:"Premium en vente à partir du 1er décembre 2026",guests:"invités",checkin:"date d'arrivée",
  g_dur:"Durée (jours)",w1:"1 sem",w2:"2 sem",w4:"1 mois",g_pkg:"Forfait",g_opt:"Options",
- o_double:"Chambre double (moins chère)",o_addmeals:"Ajouter les repas 3×/jour",o_meallevel:"Niveau des repas :",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_double:"Couple — chambre double (prix par personne)",o_meallevel:"Niveau des repas :",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Repas spéciaux :",m_none:"aucun",m_halal:"halal +15%",m_vegan:"végétalien +10%",o_welcome:"Welcome pack :",
  w_none:"aucun",w_basic:"de base 2 800",w_nohelm:"sans casque 4 700",w_full:"complet 6 000",
  o_massage:"Massage (séances, −10%)",o_privc:"Entraînement pers. (champion)",o_privs:"Entraînement pers. (standard)",
@@ -307,17 +395,16 @@ function months(l){return l==="ru"?["янв","фев","мар","апр","мая"
  :l==="fr"?["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"]
  :["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];}
 function dstr(iso,l){if(!iso)return T[l].dash;const d=new Date(iso);return d.getDate()+" "+months(l)[d.getMonth()]+" "+d.getFullYear();}
-function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,start:$('start').value,
- double:$('double').checked,add_meals:$('addmeals').checked,meal_level:$('meallevel').value,meal:$('mealspec').value,welcome:$('welcome').value,
+function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,start:$('start').value,room:$('room').value,group:$('group').checked,
+ double:$('double').checked,meal_level:$('meallevel').value,meal:$('mealspec').value,welcome:$('welcome').value,
  massage:+$('massage').value,privc:+$('privc').value,privs:+$('privs').value,transfer:$('transfer').checked,prepay:$('prepay').checked};}
-function includedItems(s){const l=lang,p=PRICES.пакеты[s.пакет],h=PH[l],out=[];
+function includedItems(s,группаАктивна){const l=lang,p=PRICES.пакеты[s.пакет],h=PH[l],out=[];
  out.push(h.program+"<b>"+s.пакет+"</b>");
- if(p.проживание){const occ=s.double?h.occ_double:h.occ_single;
-   out.push(h.accomm+"<b>"+occ+"</b>");}
+ out.push(h.accomm+"<b>"+(s.room==="премиум"?h.room_prm:h.room_std)+" · "
+   +(s.double?h.occ_double:h.occ_single)+"</b>");
  let meal;
  if(p.меню){const lvl=(s.meal_level in PRICES.меню)?s.meal_level:"standard";meal=MEALLVL[l][lvl];}
- else if(s.add_meals&&p.питание_день===0){const lvl=(s.meal_level in PRICES.меню)?s.meal_level:"standard";meal=MEALLVL[l][lvl];}
- else meal=(p.питание_день===0?h.nomeal:h.breakfast);
+ else meal=h.breakfast;
  if(s.meal)meal+=" · "+(s.meal==="халяль"?h.halal:h.vegan);
  out.push(h.meals+"<b>"+meal+"</b>");
  const ex=[];if(+s.massage)ex.push(h.massage+s.massage);
@@ -326,30 +413,56 @@ function includedItems(s){const l=lang,p=PRICES.пакеты[s.пакет],h=PH[
  if(s.transfer)ex.push(h.transfer);if(s.welcome)ex.push("welcome");
  if(ex.length)out.push(h.extras+"<b>"+ex.join(", ")+"</b>");
  out.push(h.excursions+"<b>"+h.onreq+"</b>");
+ if(s.double)out.push("<b>"+h.pair_note+"</b>");   // цена парная — условие должно быть видно клиенту
+ if(группаАктивна)out.push("<b>"+h.group_note+"</b>");
  return out;}
 function fitOffer(){const wrap=$('offerwrap'),off=$('offer');const scale=Math.min(1,wrap.clientWidth/1123);
  off.style.transform="scale("+scale+")";wrap.style.height=(off.offsetHeight*scale)+"px";}
 function render(){
  const s=selection(),r=calc(s),t=T[lang],p=PRICES.пакеты[s.пакет];
  (function(){const el=$('seasoninfo');if(!el)return;
-  if(!p.проживание){el.textContent="";el.style.color="";return;}
+
   const н=ночи_по_сезонам(s.start,+s.дни||0);
   if(!н.известно){el.textContent="⚠ "+UI[lang].s_need;el.style.color="#f4c000";return;}
   el.style.color=н.высокий?"#f4c000":"";
-  el.textContent=н.высокий&&н.низкий?UI[lang].s_mix+" ("+н.низкий+"+"+н.высокий+")"
-    :(н.высокий?UI[lang].s_high:UI[lang].s_low);})();
- $('wrap-double').classList.toggle('dis',!p.проживание);
- const canAdd=!p.меню&&p.питание_день===0;
- $('wrap-addmeals').style.display=canAdd?'flex':'none';
- const mealsActive=p.меню||(canAdd&&s.add_meals);
+  let txt=н.высокий&&н.низкий?UI[lang].s_mix+" ("+н.низкий+"+"+н.высокий+")"
+    :(н.высокий?UI[lang].s_high:UI[lang].s_low);
+  if(н.пик>0){txt+=" · "+UI[lang].s_peak+" ×"+н.пик;el.style.color="#f4c000";}
+  el.textContent=txt;})();
+  const mealsActive=p.меню;
  $('wrap-meallevel').classList.toggle('dis',!mealsActive);$('meallevel').disabled=!mealsActive;
  $('wrap-meal').classList.toggle('dis',!(mealsActive||p.питание_день>0));
+ // Премиум продаётся только с даты открытия продаж нашего отеля
+ (function(){const el=$('roominfo');if(!el)return;
+  const рано=s.room==='премиум'&&s.start&&s.start<PRICES.премиум_с;
+  el.textContent=рано?('⚠ '+UI[lang].r_soon):UI[lang].r_note;
+  el.style.color=рано?'#f4c000':'';})();
+ // Групповая скидка: только наш отель, только одноместно, от 8 номеров
+ (function(){const el=$('groupinfo');if(!el)return;
+  const вкл=$('group').checked, прем=s.room==='премиум', N=+s.гостей||0;
+  const ном = s.double ? Math.ceil(N/2) : N;   // двухместный номер — это тоже номер
+  $('wrap-group').classList.toggle('dis',!прем);
+  if(!вкл){el.style.display='none';return;}
+  el.style.display='block';
+  if(!прем||ном<PRICES.группа_от){
+   el.style.color='#f4c000';
+   el.textContent='⚠ '+UI[lang].g_no.replace('{n}',PRICES.группа_от).replace('{r}',ном);
+  }else{el.style.color='#2ec16b';el.textContent=UI[lang].g_yes.replace('{r}',ном);}})();
+
+ // Нечётная компания при парном размещении — предупреждаем менеджера
+ (function(){const el=$('oddinfo');if(!el)return;
+  const нечёт=s.double&&(+s.гостей||0)%2===1;
+  el.style.display=нечёт?'block':'none';
+  if(нечёт)el.textContent='⚠ '+UI[lang].odd_warn;})();
  [...$('durchips').children].forEach(b=>b.classList.toggle('on',+b.dataset.d===s.дни));
  if(!r){$('offer').innerHTML='<div class="o-wrap" style="padding:40px">'+t.empty+'</div>';fitOffer();return;}
  const endISO=$('start').value?new Date(new Date($('start').value).getTime()+s.дни*864e5).toISOString().slice(0,10):"";
  const dates=$('start').value?dstr($('start').value,lang)+" – "+dstr(endISO,lang):t.dash;
- const inc=includedItems(s).map(x=>'<li><span class="d">◆</span><span>'+x+'</span></li>').join('');
+ const inc=includedItems(s,r.группа).map(x=>'<li><span class="d">◆</span><span>'+x+'</span></li>').join('');
  let rows=r.lines.map(([k,arg,det,per,all])=>{let n=LN[lang][k];n=(typeof n==="function")?n(arg):n;
+   if(k==="package"){n+=LN[lang].acc_sfx(s.room==="премиум"?PH[lang].room_prm:PH[lang].room_std,
+     s.double?PH[lang].occ_double:PH[lang].occ_single);
+     if(r.группа)n+=" · "+PH[lang].group_tag;}
    return '<tr><td>'+n+(det?'<div class="sm">'+det+'</div>':'')+'</td><td class="r">฿ '+fmt(all)+'</td></tr>';}).join('');
  rows+='<tr class="sub"><td>'+t.sub+'</td><td class="r">฿ '+fmt(r.sub)+'</td></tr>';
  if(r.prepay)rows+='<tr class="disc"><td>'+t.prepay+'</td><td class="r">− ฿ '+fmt(r.disc)+'</td></tr>';
@@ -370,7 +483,9 @@ function render(){
      <div><h2>${t.inc}</h2><ul class="inc">${inc}</ul></div>
      <div><h2>${t.bd}</h2><table>${rows}</table>
        <div class="o-total"><div class="lab">${t.total}</div>
-         <div><span class="num">฿ ${fmt(r.tot)}</span><span class="usd">≈ $${fmt(r.usd)}</span></div></div></div>
+         <div><span class="num">฿ ${fmt(r.tot)}</span><span class="usd">≈ $${fmt(r.usd)}</span></div></div>
+       <div class="o-pay"><div><span class="pk">${t.pay1}</span><b>฿ ${fmt(r.pay1)}</b></div>
+         <div><span class="pk">${t.pay2}</span><b>฿ ${fmt(r.pay2)}</b></div></div></div>
    </div>
    <div class="o-foot"><div class="o-terms">${t.terms}</div>
      <div class="o-cont"><b>LUDUS · CHALONG</b><br>10/130 Moo 5, Chalong, Muang Phuket<br>${t.openLabel}<br>@ludus.phuket.muaythai · VEDA SIAM Co Ltd</div></div>
