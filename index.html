@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LUDUS Camp</title>
 <link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--red:#FF0005;--silver:#A5A5A5;--head:'Tektur','Arial Narrow',sans-serif;--body:'Montserrat',Arial,sans-serif;}
+:root{--red:#FF0005;--silver:#A5A5A5;--head:'Tektur','Arial Narrow','PingFang SC','PingFang TC','Hiragino Sans GB','Microsoft YaHei','Microsoft JhengHei','Noto Sans SC','Noto Sans TC','Noto Sans CJK SC','Noto Sans CJK TC','Source Han Sans SC',sans-serif;--body:'Montserrat',Arial,'PingFang SC','PingFang TC','Hiragino Sans GB','Microsoft YaHei','Microsoft JhengHei','Noto Sans SC','Noto Sans TC','Noto Sans CJK SC','Noto Sans CJK TC','Source Han Sans SC',sans-serif;}
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--body);background:#000;color:#fff}
 .app{display:grid;grid-template-columns:390px 1fr;min-height:100vh}
@@ -103,7 +103,7 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
     </div>
     <div class="headline" data-i18n="headline">Собери свой идеальный КЭМП</div>
     <div class="hint sub" data-i18n="hint">Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.</div>
-    <div class="lang" id="lang"><button data-l="ru" class="on">RU</button><button data-l="en">EN</button><button data-l="it">IT</button><button data-l="fr">FR</button></div>
+    <div class="lang" id="lang"><button data-l="ru">RU</button><button data-l="en" class="on">EN</button><button data-l="it">IT</button><button data-l="fr">FR</button><button data-l="zh" lang="zh-Hans">简</button><button data-l="zt" lang="zh-Hant">繁</button></div>
 
     <div class="grp"><label data-i18n="g_client">Клиент и гости</label>
       <input type="text" id="client" data-i18n-ph="ph_client" placeholder="Имя клиента">
@@ -120,8 +120,8 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
 
     <div class="grp"><label data-i18n="g_pkg">Пакет</label>
       <select id="package"><option selected>STAY &amp; TRAIN</option><option>ALL-INCLUSIVE</option></select>
-      <div class="fieldhint" style="margin-top:10px"><label data-i18n="g_room" style="margin:0 0 6px">Категория номера</label>
-        <select id="room"><option value="стандарт" data-i18n="room_std">Стандарт (отель-партнёр)</option><option value="премиум" data-i18n="room_prm">Премиум (наш отель)</option></select>
+      <div class="fieldhint" style="margin-top:10px"><label data-i18n="g_room" style="margin:0 0 6px">Отель</label>
+        <select id="hotel"></select>
         <div class="hint" style="margin:5px 0 0"><span class="tip help" data-tipkey="room">ⓘ</span> <span id="roominfo"></span></div></div>
     </div>
 
@@ -155,115 +155,97 @@ tr.sub td{color:#6a6a6a} tr.disc td{color:var(--red)}
 
 <script>
 const PRICES={курс_thb_usd:35,
- // Продукт v6.4 (22.09.2026). Цены — THB на человека, БЕЗ VAT.
- // «соло» — гость оплачивает весь номер; «пара» — цена с каждого из двоих.
- // Оба отеля сезонные: низкий 1 апр – 31 окт, высокий 1 ноя – 31 мар.
- // Жильё в цене: Стандарт — закупка (1200/1600, в пик 2750) + наценка кэмпа 15%;
- // Премиум — закупка (3551/4776, в пик 6299) + наценка 5%. Комиссия отеля 15% —
- // доход департамента, в цену клиента не входит.
- // Группа от 8 НОМЕРОВ (одноместных или двухместных) в нашем отеле: он отдаёт номер
- // по ставке ×0,8, поэтому дешевеет ТОЛЬКО жилая часть; спорт, питание и сервис те же.
- // Прайс даёт групповые цены для одноместных; в двухместном номере скидка на номер
- // делится между двумя гостями — как и сама стоимость номера.
+ // Продукт v7.0 (06.10.2026): выбор отеля (см. ЦЕНОВОЙ_ДВИЖОК_СПЕК.md). Цены — THB на человека, БЕЗ VAT.
+ // Цена гостя = программа (спорт + питание + сервис, фикс. за срок)
+ //            + проживание (ночи × закупочная ставка отеля на дату × наценка кэмпа) / (2, если пара)
+ // Программа и проживание на человека складываются и округляются до 50 ฿.
+ // «соло» — гость оплачивает весь номер; «пара» — двое делят номер, цена с каждого.
  пакеты:{
-  "STAY & TRAIN":{питание_день:210,меню:false,
-   стандарт:{соло:{низкий:{7:17200,14:32400,28:61900},высокий:{7:20400,14:38800,28:75700}},
-             пара:{низкий:{7:12350,14:22700,28:41200},высокий:{7:13950,14:25900,28:48100}}},
-   премиум:{соло:{низкий:{7:33600,14:65200,28:132400},высокий:{7:42600,14:83200,28:170900}},
-            пара:{низкий:{7:20550,14:39100,28:76450},высокий:{7:25050,14:48100,28:95700}}},
-   премиум_группа:{соло:{низкий:{7:28400,14:54800,28:110000},высокий:{7:35600,14:69200,28:140900}}}},
-  "ALL-INCLUSIVE":{питание_день:500,меню:true,
-   стандарт:{соло:{низкий:{7:19200,14:36500,28:70600},высокий:{7:22400,14:42900,28:84400}},
-             пара:{низкий:{7:14350,14:26800,28:49900},высокий:{7:15950,14:30000,28:56800}}},
-   премиум:{соло:{низкий:{7:35600,14:69300,28:141100},высокий:{7:44600,14:87300,28:179600}},
-            пара:{низкий:{7:22550,14:43200,28:85150},высокий:{7:27050,14:52200,28:104400}}},
-   премиум_группа:{соло:{низкий:{7:30400,14:58900,28:118700},высокий:{7:37600,14:73300,28:149600}}}}},
+  "STAY & TRAIN":{питание_день:210,меню:false,программа:{7:7500,14:13000,28:28000}},
+  "ALL-INCLUSIVE":{питание_день:500,меню:true,программа:{7:9500,14:17100,28:36700}}},
+ // Отели. Ставки — закупка за номер за ночь по датам заезда (периоды «ММ-ДД»; период через
+ // Новый год задаётся с > по). Наш LUDUS Hotel даёт ставки С VAT — делим на 1,07 и накидываем 5%;
+ // партнёры дают ставки без VAT — накидываем 15%. Комиссия отеля-партнёра — доход департамента,
+ // в цену клиента не входит. Группа от 8 номеров одним заездом: только наш отель, ставка ×0,8
+ // в любой сезон — дешевеет ТОЛЬКО жилая часть.
+ отели:[
+  {id:"ludus",label:"LUDUS Hotel",наш:true,наценка:1.05,vat_в_цене:true,группа:true,с_продаж:"2026-12-01",
+   ставки:[{с:"11-01",по:"11-30",цена:5110},{с:"12-01",по:"01-31",цена:6740},{с:"02-01",по:"03-31",цена:5110},
+           {с:"04-01",по:"04-30",цена:4355},{с:"05-01",по:"09-30",цена:3710},{с:"10-01",по:"10-31",цена:4070}]},
+  {id:"marina_std",label:"Marina House · Standard",наценка:1.15,
+   ставки:[{с:"11-01",по:"11-30",цена:1550},{с:"12-01",по:"12-23",цена:1650},{с:"12-24",по:"01-10",цена:2750},
+           {с:"01-11",по:"02-29",цена:1750},{с:"03-01",по:"03-31",цена:1650},{с:"04-01",по:"04-30",цена:1400},
+           {с:"05-01",по:"10-31",цена:1250}]},
+  {id:"marina_pool",label:"Marina House · Pool View",наценка:1.15,
+   ставки:[{с:"11-01",по:"11-30",цена:1800},{с:"12-01",по:"12-23",цена:1900},{с:"12-24",по:"01-10",цена:3100},
+           {с:"01-11",по:"02-29",цена:2000},{с:"03-01",по:"03-31",цена:1900},{с:"04-01",по:"04-30",цена:1650},
+           {с:"05-01",по:"10-31",цена:1500}]},
+  {id:"blue",label:"Blue Hotel",наценка:1.15,
+   ставки:[{с:"03-01",по:"06-30",цена:1500},{с:"07-01",по:"10-31",цена:1200},{с:"11-01",по:"02-29",цена:3000}]},
+  {id:"bora",label:"Bora Bora",наценка:1.15,
+   ставки:[{с:"11-01",по:"04-30",цена:1350},{с:"05-01",по:"10-31",цена:1000}]}],
+ отель_по_умолчанию:"ludus",
+ группа_от:8,группа_ставка:0.8,       // групповая бронь — от 8 номеров одним заездом, ставка отеля ×0,8
  меню:{standard:{нед:0,день:500},standard_plus:{нед:1750,день:750},champion:{нед:3500,день:1000}},
  welcome:{полный:6000,без_шлема:4700,базовый:2800},массаж:690,массаж_скидка:0.10,
  приват:{чемпион:1500,стандарт:800},приват_скидка_кэмпер:0.15,
  трансфер:850,трансфер_мест:4,
  предоплата_доля:0.40,   // 40% при бронировании, остаток — не позднее 30 дней до заезда
- премиум_с:"2026-12-01",          // продажи нашего отеля открываются с этой даты
- группа_от:8,                     // групповая бронь — от 8 номеров одним заездом
- сезон:{высокие_месяцы:[11,12,1,2,3],   // высокий: 1 ноя – 31 мар, низкий: 1 апр – 31 окт
-  // Пик 20.12–10.01 — отдельная карта обоих отелей (Стандарт 2 750, Премиум 6 299 за ночь).
-  // Надбавки за ночь из прайса v6.4; пара делит номер и надбавку пополам.
-  // У группы своя надбавка: её жилая часть уже со скидкой 20%.
-  // Итог округляем до полусотни — тогда заезд целиком в окне даёт ровно цену из таблицы «ПИК».
-  пик:{с:[12,20],по:[1,10],надбавка:{стандарт:1314,премиум:1600,премиум_группа:8900/7}}},
  халяль_pct:0.15,веган_pct:0.10,предоплата_скидка:0.03,vat_pct:0.07};
 
-// Сезон конкретной ночи: ноябрь–март — высокий, остальное — низкий.
+function отель(id,cfg=PRICES){return cfg.отели.find(h=>h.id===id)||cfg.отели.find(h=>h.id===cfg.отель_по_умолчанию)||cfg.отели[0];}
+// Закупочная ставка отеля за ночь по дате: ищем период «ММ-ДД», период через Новый год (с > по) — с переносом.
+function закупка_ночи(h,d){const md=String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+ const r=h.ставки.find(x=>x.с<=x.по?(md>=x.с&&md<=x.по):(md>=x.с||md<=x.по));
+ return r?r.цена:Math.min(...h.ставки.map(x=>x.цена));}
+// Ставка для клиента за ночь (БЕЗ VAT): снимаем VAT, если он в закупке, и накидываем наценку кэмпа.
+function ставка_клиента(h,закупка){return (h.vat_в_цене?закупка/(1+PRICES.vat_pct):закупка)*h.наценка;}
+// Ночи заезда, сгруппированные по ставке (в порядке появления): [{закупка, ставка, ночей}].
 // Считаем именно НОЧИ: заезд 25.10 на 14 дней = 7 ночей октября + 7 ночей ноября.
-function сезон_ночи(d,cfg=PRICES){return cfg.сезон.высокие_месяцы.includes(d.getMonth()+1)?"высокий":"низкий";}
-// Пик проходит через Новый год, поэтому проверяем два куска: конец декабря и начало января.
-function пиковая_ночь(d,cfg=PRICES){const п=cfg.сезон.пик;if(!п)return false;
- const m=d.getMonth()+1,day=d.getDate();
- return (m===п.с[0]&&day>=п.с[1])||(m===п.по[0]&&day<=п.по[1]);}
-function ночи_по_сезонам(iso,D,cfg=PRICES){
- const out={низкий:0,высокий:0,пик:0,известно:false};
- if(!iso||!D){out.низкий=D||0;return out;}      // дата не выбрана — считаем по низкому
- const d0=new Date(iso+"T12:00:00");
- if(isNaN(d0))  {out.низкий=D;return out;}
+// Дата не выбрана — считаем по самой низкой ставке отеля и просим указать дату.
+function ночи_по_ставкам(h,iso,D){
+ const out={группы:[],известно:false,всего:D||0};
+ if(!D)return out;
+ const d0=iso?new Date(iso+"T12:00:00"):null;
+ if(!d0||isNaN(d0)){const з=Math.min(...h.ставки.map(x=>x.цена));out.группы.push({закупка:з,ставка:ставка_клиента(h,з),ночей:D});return out;}
  out.известно=true;
- for(let i=0;i<D;i++){const d=new Date(d0.getTime()+i*864e5);
-  out[сезон_ночи(d,cfg)]++; if(пиковая_ночь(d,cfg))out.пик++;}
+ for(let i=0;i<D;i++){const з=закупка_ночи(h,new Date(d0.getTime()+i*864e5));
+  const g=out.группы.find(x=>x.закупка===з);
+  if(g)g.ночей++;else out.группы.push({закупка:з,ставка:ставка_клиента(h,з),ночей:1});}
  return out;}
+// Сумма проживания за номер за весь заезд (без VAT, с наценкой).
+function проживание_номера(н){return н.группы.reduce((a,g)=>a+g.ставка*g.ночей,0);}
 
+// Программа на человека за срок: 7/14/28 дней — из прайса, промежуточные — интерполяция дневной ставки.
 function ставка(ц,D){const a=ц[7]/7,b=ц[14]/14,c=ц[28]/28;
  if(D<=7)return a;if(D<=14)return a+(b-a)*(D-7)/7;if(D<=28)return b+(c-b)*(D-14)/14;return c;}
+function окр50(x){return Math.round(x/50)*50;}
 function calc(s,cfg=PRICES){
  const p=cfg.пакеты[s.пакет];const D=+s.дни||0,N=+s.гостей||0;if(!p||D<=0||N<=0)return null;
  const w=D/7,L=[];
  const разм=s.double?"пара":"соло";         // по умолчанию соло — гость оплачивает весь номер
- const прем=s.room==="премиум";
- const ночи=ночи_по_сезонам(s.start,D,cfg);
+ const h=отель(s.hotel,cfg), наш=!!h.наш;
+ const ночи=ночи_по_ставкам(h,s.start,D);
 
- // Базовая цена берётся прямо из прайса v5.1: он уже учитывает пакет, размещение и сезон.
- // Для гибкого срока считаем дневную ставку (дольше — дешевле день), для стыка сезонов
- // складываем ночи низкого и высокого сезона по их собственным ставкам.
- // Цена пакета для выбранного типа размещения; считаем обоими способами,
- // чтобы поддержать нечётную компанию (см. ниже строку "odd").
- // Групповая цена — наш отель от 8 номеров. Номера считаем по размещению:
- // одноместно 1 гость = 1 номер, двухместно двое делят номер (нечётный занимает свой).
+ // Номера считаем по размещению: одноместно 1 гость = 1 номер, двухместно двое делят номер
+ // (нечётный занимает свой). Групповая ставка — только наш отель и от 8 номеров.
  const номеров = s.double ? Math.ceil(N/2) : N;
- const группа = !!s.group && прем && номеров>=cfg.группа_от;
- function базаДля(рм){
-  const обычная = (пр=>ставка(пр.низкий,D)*ночи.низкий + ставка(пр.высокий,D)*ночи.высокий);
-  if(!прем) return обычная(p.стандарт[рм]);
-  const цена = обычная(p.премиум[рм]);
-  if(!группа) return цена;
-  // Скидка отеля даётся на номер: в одноместном её несёт один гость, в двухместном — двое.
-  const скидкаНомера = обычная(p.премиум.соло) - обычная(p.премиум_группа.соло);
-  return цена - скидкаНомера/(рм==="пара"?2:1);
- }
- function пикДля(рм,б){
-  if(!(ночи.пик>0))return 0;
-  const ключ=группа?"премиум_группа":(прем?"премиум":"стандарт");
-  const заНочь=cfg.сезон.пик.надбавка[ключ]/(рм==="пара"?2:1);
-  return Math.round((б+заНочь*ночи.пик)/50)*50-б;
- }
- const база=базаДля(разм);
- const пометка=D+"d"+(ночи.высокий&&ночи.низкий?" · "+ночи.низкий+"+"+ночи.высокий:"");
- L.push(["package",s.пакет,пометка,база]);
-
- // Пик касается обоих отелей. Надбавку считаем по ночам, а итог (база + надбавка)
- // округляем до полусотни — так заезд, целиком попавший в окно, совпадает с
- // пиковой таблицей продукта до рубля.
- if(ночи.пик>0){const п=cfg.сезон.пик;
-  const ключ=группа?"премиум_группа":(прем?"премиум":"стандарт");
-  const заНочь=п.надбавка[ключ]/(разм==="пара"?2:1);
-  L.push(["peak","",ночи.пик+"×"+Math.round(заНочь),пикДля(разм,база)]);}
+ const группа = !!s.group && !!h.группа && номеров>=cfg.группа_от;
+ const программа = ставка(p.программа,D)*D;
+ const номер = проживание_номера(ночи)*(группа?cfg.группа_ставка:1);
+ // Цена пакета на человека для типа размещения: программа + доля номера, округлённая до 50.
+ function пакетДля(рм){return окр50(программа + номер/(рм==="пара"?2:1));}
+ const база=пакетДля(разм);
+ // В КП клиенту — только срок; разрез проживания по ночам менеджер видит слева, под датой заезда.
+ L.push(["package",s.пакет,D+"d",база]);
 
  // Нечётная компания при парном размещении: пары складываются, а одному гостю
  // делить номер не с кем — он живёт один и платит одноместный тариф.
  // Разницу добавляем отдельной строкой; делим на N, потому что строки в L
  // хранятся «на человека» и умножаются на число гостей в конце.
  const непарный = s.double && N%2===1;
- if(непарный){
-  const соло=базаДля("соло"), пара=базаДля("пара");
-  const полнСоло=соло+пикДля("соло",соло), полнПара=пара+пикДля("пара",пара);
-  L.push(["odd","",'1×'+Math.round(полнСоло-полнПара),(полнСоло-полнПара)/N]);}
+ if(непарный){const разница=пакетДля("соло")-пакетДля("пара");
+  L.push(["odd","",'1×'+Math.round(разница),разница/N]);}
 
  let mealDay=p.питание_день;
  if(p.меню){const lvl=(s.meal_level in cfg.меню)?s.meal_level:"standard";mealDay=cfg.меню[lvl].день;
@@ -286,7 +268,7 @@ function calc(s,cfg=PRICES){
  const полн=sub+Math.round(sub*cfg.vat_pct);
  const pay1=Math.round(полн*cfg.предоплата_доля), pay2=tot-pay1;
  return{lines:L.map(x=>[x[0],x[1],x[2],Math.round(x[3]),Math.round(x[3]*N)]),N,sub,prepay:!!s.prepay,disc,vat,tot,
-        usd:Math.round(tot/cfg.курс_thb_usd),разм,прем,ночи,pay1,pay2,непарный,группа};
+        usd:Math.round(tot/cfg.курс_thb_usd),разм,отель:h,наш,ночи,pay1,pay2,непарный,группа};
 }
 
 const SLOGAN="SHAPE YOUR POWER";
@@ -305,43 +287,67 @@ const T={ru:{lab:"Персональное предложение",client:"Кл�
  fr:{lab:"Offre Personnalisée",client:"Client",guests:"Invités",dates:"Dates",nights:"Jours",
  inc:"Ce qui est inclus",bd:"Détail du prix",sub:"Sous-total",prepay:"Acompte −3%",vat:"TVA 7% (en sus)",total:"Total",t1:"VOTRE",t2:"camp",
  subttl:"Un programme adapté à vos objectifs · LUDUS, Chalong · Phuket",
- pay1:"À la réservation (40%)",pay2:"Solde — 30 jours avant l'arrivée",terms:"Les prix sont indiqués hors taxes ; la TVA de 7% est ajoutée et incluse dans le Total. La réservation exige un acompte de 40% ; le solde au plus tard 30 jours avant l'arrivée. L'acompte n'est pas remboursable ; les dates peuvent être décalées selon les disponibilités. La réservation en double s'ouvre après paiement des deux invités. Excursions, services médicaux et tournage — sur demande.",openLabel:"Ouvert tous les jours 06:30 – 22:00",empty:"Sélectionnez le forfait, la durée et le nombre d'invités…",dash:"—"}};
+ pay1:"À la réservation (40%)",pay2:"Solde — 30 jours avant l'arrivée",terms:"Les prix sont indiqués hors taxes ; la TVA de 7% est ajoutée et incluse dans le Total. La réservation exige un acompte de 40% ; le solde au plus tard 30 jours avant l'arrivée. L'acompte n'est pas remboursable ; les dates peuvent être décalées selon les disponibilités. La réservation en double s'ouvre après paiement des deux invités. Excursions, services médicaux et tournage — sur demande.",openLabel:"Ouvert tous les jours 06:30 – 22:00",empty:"Sélectionnez le forfait, la durée et le nombre d'invités…",dash:"—"},
+ zh:{lab:"专属报价",client:"客户",guests:"人数",dates:"日期",nights:"天数",
+ inc:"包含内容",bd:"费用明细",sub:"小计",prepay:"预付优惠 −3%",vat:"增值税 7%（另加）",total:"总计",t1:"你的",t2:"训练营",
+ subttl:"为你的目标量身定制的课程 · LUDUS，查龙 · 普吉岛",
+ pay1:"预订时支付（40%）",pay2:"余款 — 入住前 30 天",terms:"所示价格不含增值税；7% 增值税另行加收并计入「总计」。预订需支付 40% 定金，余款须在入住前 30 天付清。定金不可退还；在有空房的情况下可以改期。双人合住的预订在两位客人均付款后生效。观光、医疗服务及拍摄 — 可按需求安排。",openLabel:"每日营业 06:30 – 22:00",empty:"请选择套餐、天数和人数…",dash:"—"},
+ zt:{lab:"專屬報價",client:"客戶",guests:"人數",dates:"日期",nights:"天數",
+ inc:"包含內容",bd:"費用明細",sub:"小計",prepay:"預付優惠 −3%",vat:"增值稅 7%（另加）",total:"總計",t1:"你的",t2:"訓練營",
+ subttl:"為你的目標量身打造的課程 · LUDUS，查龍 · 普吉島",
+ pay1:"預訂時支付（40%）",pay2:"餘款 — 入住前 30 天",terms:"所示價格不含增值稅；7% 增值稅另行加收並計入「總計」。預訂需支付 40% 訂金，餘款須在入住前 30 天付清。訂金不可退還；在有空房的情況下可以改期。雙人合住的預訂在兩位客人皆付款後生效。觀光、醫療服務及拍攝 — 可依需求安排。",openLabel:"每日營業 06:30 – 22:00",empty:"請選擇套餐、天數和人數…",dash:"—"}};
 const LN={ru:{package:p=>"Пакет "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Одноместное размещение",meal_plus:"Меню STANDARD+",meal_champ:"Меню CHAMPION",
  halal:"Питание халяль (+15%)",vegan:"Питание веган (+10%)",welcome:w=>"Welcome-пакет ("+w+")",
- massage:"Массаж спортивный (−10%)",priv_champ:"Персональная тренировка — чемпион (−15%)",priv_std:"Персональная тренировка — стандарт (−15%)",transfer:"Трансфер из аэропорта (машина до 4 чел.)",peak:"Новогодний пик (20 дек – 10 янв), доплата за номер",odd:"Непарный гость — одноместный тариф",season:"Высокий сезон (ноя–мар), доплата за проживание"},
+ massage:"Массаж спортивный (−10%)",priv_champ:"Персональная тренировка — чемпион (−15%)",priv_std:"Персональная тренировка — стандарт (−15%)",transfer:"Трансфер из аэропорта (машина до 4 чел.)",odd:"Непарный гость — одноместный тариф"},
  en:{package:p=>"Package "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Single occupancy",meal_plus:"STANDARD+ menu",meal_champ:"CHAMPION menu",
  halal:"Halal meals (+15%)",vegan:"Vegan meals (+10%)",welcome:w=>"Welcome pack ("+({полный:"full",без_шлема:"no helmet",базовый:"basic"}[w]||w)+")",
- massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer (car up to 4 people)",peak:"New Year peak (20 Dec – 10 Jan), room surcharge",odd:"Unpaired guest — single occupancy",season:"High season surcharge (Nov–Mar), accommodation"},
+ massage:"Sport massage (−10%)",priv_champ:"Personal training — champion (−15%)",priv_std:"Personal training — standard (−15%)",transfer:"Airport transfer (car up to 4 people)",odd:"Unpaired guest — single occupancy"},
  it:{package:p=>"Pacchetto "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Sistemazione singola",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
  halal:"Pasti halal (+15%)",vegan:"Pasti vegani (+10%)",welcome:w=>"Welcome pack ("+({полный:"completo",без_шлема:"senza casco",базовый:"base"}[w]||w)+")",
- massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto (auto fino a 4 persone)",peak:"Picco di Capodanno (20 dic – 10 gen), supplemento camera",odd:"Ospite senza coppia — sistemazione singola",season:"Supplemento alta stagione (nov–mar), alloggio"},
+ massage:"Massaggio sportivo (−10%)",priv_champ:"Allenamento personale — campione (−15%)",priv_std:"Allenamento personale — standard (−15%)",transfer:"Transfer aeroporto (auto fino a 4 persone)",odd:"Ospite senza coppia — sistemazione singola"},
  fr:{package:p=>"Forfait "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"Chambre individuelle",meal_plus:"Menu STANDARD+",meal_champ:"Menu CHAMPION",
  halal:"Repas halal (+15%)",vegan:"Repas végétaliens (+10%)",welcome:w=>"Welcome pack ("+({полный:"complet",без_шлема:"sans casque",базовый:"de base"}[w]||w)+")",
- massage:"Massage sportif (−10%)",priv_champ:"Entraînement personnel — champion (−15%)",priv_std:"Entraînement personnel — standard (−15%)",transfer:"Transfert aéroport (voiture jusqu'à 4 personnes)",peak:"Pic du Nouvel An (20 déc – 10 janv), supplément chambre",odd:"Invité sans binôme — chambre individuelle",season:"Supplément haute saison (nov–mars), hébergement"}};
+ massage:"Massage sportif (−10%)",priv_champ:"Entraînement personnel — champion (−15%)",priv_std:"Entraînement personnel — standard (−15%)",transfer:"Transfert aéroport (voiture jusqu'à 4 personnes)",odd:"Invité sans binôme — chambre individuelle"},
+ zh:{package:p=>"套餐 "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"单人入住",meal_plus:"STANDARD+ 餐食",meal_champ:"CHAMPION 餐食",
+ halal:"清真餐（+15%）",vegan:"纯素餐（+10%）",welcome:w=>"Welcome 礼包（"+({полный:"全套",без_шлема:"不含头盔",базовый:"基础"}[w]||w)+"）",
+ massage:"运动按摩（−10%）",priv_champ:"私人训练 — 冠军教练（−15%）",priv_std:"私人训练 — 标准教练（−15%）",transfer:"机场接送（4 人以内一车）",odd:"无人同住的客人 — 按单人房计价"},
+ zt:{package:p=>"套餐 "+p,acc_sfx:(r,o)=>" · "+r+" · "+o,single:"單人入住",meal_plus:"STANDARD+ 餐食",meal_champ:"CHAMPION 餐食",
+ halal:"清真餐（+15%）",vegan:"純素餐（+10%）",welcome:w=>"Welcome 禮包（"+({полный:"全套",без_шлема:"不含頭盔",базовый:"基礎"}[w]||w)+"）",
+ massage:"運動按摩（−10%）",priv_champ:"私人訓練 — 冠軍教練（−15%）",priv_std:"私人訓練 — 標準教練（−15%）",transfer:"機場接送（4 人以內一車）",odd:"無人同住的客人 — 按單人房計價"}};
 const MEALLVL={ru:{standard:"питание STANDARD 3×/день",standard_plus:"питание STANDARD+ 3×/день",champion:"питание CHAMPION 3×/день"},
  en:{standard:"STANDARD board, 3 meals/day",standard_plus:"STANDARD+ board, 3 meals/day",champion:"CHAMPION board, 3 meals/day"},
  it:{standard:"pensione STANDARD, 3 pasti/giorno",standard_plus:"pensione STANDARD+, 3 pasti/giorno",champion:"pensione CHAMPION, 3 pasti/giorno"},
- fr:{standard:"pension STANDARD, 3 repas/jour",standard_plus:"pension STANDARD+, 3 repas/jour",champion:"pension CHAMPION, 3 repas/jour"}};
-const PH={ru:{program:"Программа: ",accomm:"Проживание: ",meals:"Питание: ",extras:"Дополнительно: ",excursions:"Экскурсии: ",onreq:"по запросу",occ_single:"одноместно",occ_double:"двухместно",room_std:"Стандарт",room_prm:"Премиум",pair_note:"Парная цена: указана с человека; бронь подтверждается после оплаты обоих гостей",group_tag:"группа 8+",group_note:"Групповая цена: от 8 номеров одним заездом, жилая часть −20%",nomeal:"без питания",breakfast:"завтрак",halal:"халяль",vegan:"веган",massage:"массаж ×",privc:"перс. тренировки (чемпион) ×",privs:"перс. тренировки ×",transfer:"трансфер"},
- en:{program:"Program: ",accomm:"Accommodation: ",meals:"Meals: ",extras:"Extras: ",excursions:"Excursions: ",onreq:"on request",occ_single:"single",occ_double:"twin share",room_std:"Standard",room_prm:"Premium",pair_note:"Couple rate: shown per person; the booking is confirmed once both guests have paid",group_tag:"group 8+",group_note:"Group rate: 8+ rooms in one booking, accommodation −20%",nomeal:"no meals",breakfast:"breakfast",halal:"halal",vegan:"vegan",massage:"massage ×",privc:"personal training (champion) ×",privs:"personal training ×",transfer:"transfer"},
- it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia condivisa",room_std:"Standard",room_prm:"Premium",pair_note:"Tariffa coppia: indicata a persona; la prenotazione si conferma dopo il pagamento di entrambi",group_tag:"gruppo 8+",group_note:"Tariffa gruppo: da 8 camere in una prenotazione, alloggio −20%",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"},
- fr:{program:"Programme : ",accomm:"Hébergement : ",meals:"Repas : ",extras:"Suppléments : ",excursions:"Excursions : ",onreq:"sur demande",occ_single:"individuelle",occ_double:"double partagée",room_std:"Standard",room_prm:"Premium",pair_note:"Tarif couple : indiqué par personne ; la réservation est confirmée après paiement des deux",group_tag:"groupe 8+",group_note:"Tarif groupe : dès 8 chambres en une réservation, hébergement −20%",nomeal:"sans repas",breakfast:"petit-déjeuner",halal:"halal",vegan:"végétalien",massage:"massage ×",privc:"entraînements personnels (champion) ×",privs:"entraînements personnels ×",transfer:"transfert"}};
+ fr:{standard:"pension STANDARD, 3 repas/jour",standard_plus:"pension STANDARD+, 3 repas/jour",champion:"pension CHAMPION, 3 repas/jour"},
+ zh:{standard:"STANDARD 餐食，每日 3 餐",standard_plus:"STANDARD+ 餐食，每日 3 餐",champion:"CHAMPION 餐食，每日 3 餐"},
+ zt:{standard:"STANDARD 餐食，每日 3 餐",standard_plus:"STANDARD+ 餐食，每日 3 餐",champion:"CHAMPION 餐食，每日 3 餐"}};
+const PH={ru:{program:"Программа: ",accomm:"Проживание: ",meals:"Питание: ",extras:"Дополнительно: ",excursions:"Экскурсии: ",onreq:"по запросу",occ_single:"одноместно",occ_double:"двухместно",pair_note:"Парная цена: указана с человека; бронь подтверждается после оплаты обоих гостей",group_tag:"группа 8+",group_note:"Групповая цена: от 8 номеров одним заездом, жилая часть −20%",nomeal:"без питания",breakfast:"завтрак",halal:"халяль",vegan:"веган",massage:"массаж ×",privc:"перс. тренировки (чемпион) ×",privs:"перс. тренировки ×",transfer:"трансфер"},
+ en:{program:"Program: ",accomm:"Accommodation: ",meals:"Meals: ",extras:"Extras: ",excursions:"Excursions: ",onreq:"on request",occ_single:"single",occ_double:"twin share",pair_note:"Couple rate: shown per person; the booking is confirmed once both guests have paid",group_tag:"group 8+",group_note:"Group rate: 8+ rooms in one booking, accommodation −20%",nomeal:"no meals",breakfast:"breakfast",halal:"halal",vegan:"vegan",massage:"massage ×",privc:"personal training (champion) ×",privs:"personal training ×",transfer:"transfer"},
+ it:{program:"Programma: ",accomm:"Alloggio: ",meals:"Pasti: ",extras:"Extra: ",excursions:"Escursioni: ",onreq:"su richiesta",occ_single:"singola",occ_double:"doppia condivisa",pair_note:"Tariffa coppia: indicata a persona; la prenotazione si conferma dopo il pagamento di entrambi",group_tag:"gruppo 8+",group_note:"Tariffa gruppo: da 8 camere in una prenotazione, alloggio −20%",nomeal:"senza pasti",breakfast:"colazione",halal:"halal",vegan:"vegano",massage:"massaggio ×",privc:"allenamento personale (campione) ×",privs:"allenamento personale ×",transfer:"transfer"},
+ fr:{program:"Programme : ",accomm:"Hébergement : ",meals:"Repas : ",extras:"Suppléments : ",excursions:"Excursions : ",onreq:"sur demande",occ_single:"individuelle",occ_double:"double partagée",pair_note:"Tarif couple : indiqué par personne ; la réservation est confirmée après paiement des deux",group_tag:"groupe 8+",group_note:"Tarif groupe : dès 8 chambres en une réservation, hébergement −20%",nomeal:"sans repas",breakfast:"petit-déjeuner",halal:"halal",vegan:"végétalien",massage:"massage ×",privc:"entraînements personnels (champion) ×",privs:"entraînements personnels ×",transfer:"transfert"},
+ zh:{program:"课程：",accomm:"住宿：",meals:"餐食：",extras:"附加项目：",excursions:"观光：",onreq:"可按需求安排",occ_single:"单人房",occ_double:"双人合住",pair_note:"双人价：按每人显示；两位客人均付款后预订生效",group_tag:"团体 8+",group_note:"团体价：同一订单 8 间房起，住宿部分 −20%",nomeal:"不含餐",breakfast:"早餐",halal:"清真",vegan:"纯素",massage:"按摩 ×",privc:"私人训练（冠军教练）×",privs:"私人训练 ×",transfer:"接送"},
+ zt:{program:"課程：",accomm:"住宿：",meals:"餐食：",extras:"附加項目：",excursions:"觀光：",onreq:"可依需求安排",occ_single:"單人房",occ_double:"雙人合住",pair_note:"雙人價：以每人計；兩位客人皆付款後預訂生效",group_tag:"團體 8+",group_note:"團體價：同一訂單 8 間房起，住宿部分 −20%",nomeal:"不含餐",breakfast:"早餐",halal:"清真",vegan:"純素",massage:"按摩 ×",privc:"私人訓練（冠軍教練）×",privs:"私人訓練 ×",transfer:"接送"}};
 const TIPS={ru:{welcome:"Экипировка новичка: перчатки, бинты, бутылка, рюкзак, шорты и футболка. В полном — ещё шлем; в базовом — без шлема и перчаток.",
  trainers:"Чемпион — персональная тренировка с титулованным чемпионом клуба. Стандарт — с опытным штатным тренером.",
- room:"Разница только в отеле. Стандарт — проверенный отель-партнёр, цена зависит от сезона. Премиум — наш собственный отель, одна цена круглый год, продажи с 1 декабря 2026. Тренировки, питание, сервис и всё остальное в пакете — одинаковые."},
+ room:"Разница только в отеле. LUDUS Hotel — наш собственный отель (в продаже с 1 декабря 2026). Marina House, Blue Hotel и Bora Bora — проверенные отели-партнёры. Цена проживания зависит от дат заезда. Тренировки, питание, сервис и всё остальное в пакете — одинаковые."},
  en:{welcome:"Starter gear: gloves, hand wraps, water bottle, backpack, shorts and t-shirt. Full also includes a helmet; basic — without helmet and gloves.",
  trainers:"Champion — one-on-one with a titled club champion. Standard — with an experienced in-house coach.",
- room:"The only difference is the hotel. Standard — our trusted partner hotel, rate depends on season. Premium — our own hotel, one rate all year, on sale from 1 December 2026. Training, meals, service and everything else in the package are identical."},
+ room:"The only difference is the hotel. LUDUS Hotel is our own hotel (on sale from 1 December 2026). Marina House, Blue Hotel and Bora Bora are trusted partner hotels. Accommodation price depends on arrival dates. Training, meals, service and everything else in the package are the same."},
  it:{welcome:"Kit iniziale: guantoni, bende, borraccia, zaino, pantaloncini e t-shirt. Nel completo anche il casco; nel base — senza casco e guantoni.",
  trainers:"Campione — sessione individuale con un campione titolato del club. Standard — con un coach esperto interno.",
- room:"L'unica differenza è l'hotel. Standard — hotel partner di fiducia, tariffa stagionale. Premium — il nostro hotel, tariffa unica tutto l'anno, in vendita dal 1° dicembre 2026. Allenamenti, pasti e servizi sono identici."},
+ room:"L'unica differenza è l'hotel. LUDUS Hotel è il nostro hotel (in vendita dal 1° dicembre 2026). Marina House, Blue Hotel e Bora Bora sono hotel partner di fiducia. Il prezzo dell'alloggio dipende dalle date. Allenamenti, pasti, servizi e tutto il resto del pacchetto sono identici."},
  fr:{welcome:"Équipement du débutant : gants, bandes, gourde, sac à dos, short et t-shirt. La version complète inclut aussi un casque ; la version de base — sans casque ni gants.",
  trainers:"Champion — séance individuelle avec un champion titré du club. Standard — avec un coach expérimenté de l'équipe.",
- room:"La seule différence est l'hôtel. Standard — hôtel partenaire de confiance, tarif selon la saison. Premium — notre propre hôtel, tarif unique toute l'année, en vente dès le 1er décembre 2026. Entraînements, repas et services sont identiques."}};
+ room:"La seule différence est l'hôtel. LUDUS Hotel est notre propre hôtel (en vente dès le 1er décembre 2026). Marina House, Blue Hotel et Bora Bora sont des hôtels partenaires de confiance. Le prix de l'hébergement dépend des dates. Entraînements, repas, service et tout le reste du forfait sont identiques."},
+ zh:{welcome:"新手装备：拳套、手绷带、水壶、背包、短裤和 T 恤。全套还包含头盔；基础版不含头盔和拳套。",
+ trainers:"冠军教练 — 与俱乐部冠军一对一训练。标准教练 — 由经验丰富的专职教练带训。",
+ room:"区别只在酒店。LUDUS Hotel 是我们自有的酒店（2026 年 12 月 1 日起开售）。Marina House、Blue Hotel 和 Bora Bora 是长期合作的伙伴酒店。住宿价格取决于入住日期。训练、餐食、服务及套餐中的其他内容完全相同。"},
+ zt:{welcome:"新手裝備：拳套、手綁帶、水壺、背包、短褲和 T 恤。全套還包含頭盔；基礎版不含頭盔和拳套。",
+ trainers:"冠軍教練 — 與俱樂部冠軍一對一訓練。標準教練 — 由經驗豐富的專職教練帶訓。",
+ room:"差別只在飯店。LUDUS Hotel 是我們自有的飯店（2026 年 12 月 1 日起開賣）。Marina House、Blue Hotel 和 Bora Bora 是長期合作的夥伴飯店。住宿價格取決於入住日期。訓練、餐食、服務及套餐中的其他內容完全相同。"}};
 const BOLT='<svg class="bolt" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="13,1 3,14 10,14 8,23 21,9 13,9" fill="#FF0005"/></svg>';
 
 const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный КЭМП",hint:"Цена и условия обновляются справа/ниже. Нажмите «Скачать PDF» — сверху.",
- g_client:"Клиент и гости",ph_client:"Имя клиента",ph_date:"дд.мм.гггг",s_low:"низкий сезон",s_high:"высокий сезон (дороже)",s_mix:"низкий + высокий сезон",s_need:"укажите дату — цена жилья зависит от сезона",s_flat:"Премиум — одна цена круглый год",s_peak:"новогодний пик",odd_warn:"нечётное число гостей: одному не с кем делить номер — для него считается одноместный тариф",o_group:"Групповая бронь от 8 номеров",g_yes:"групповая цена применена: номеров — {r}, жилая часть −20%",g_no:"групповая цена НЕ применена: нужен Премиум и от {n} номеров, сейчас {r}",g_room:"Категория номера",room_std:"Стандарт (отель-партнёр)",room_prm:"Премиум (наш отель)",r_note:"Категория меняет только отель — программа, питание и сервис одинаковые",r_soon:"Премиум в продаже с 1 декабря 2026",guests:"гостей",checkin:"дата заезда",
+ g_client:"Клиент и гости",ph_client:"Имя клиента",s_rate:"проживание: {b} ฿/ночь за номер (без VAT)",s_rates:"проживание по датам: {b} ฿/ночь за номер",s_need:"укажите дату — цена проживания зависит от дат заезда",g_yes:"групповая цена применена: номеров — {r}, жилая часть −20%",g_no:"групповая цена НЕ применена: нужен LUDUS Hotel и от {n} номеров, сейчас {r}",g_room:"Отель",r_note:"Отель меняет только проживание — программа, питание и сервис одинаковые",r_soon:"LUDUS Hotel в продаже с 1 декабря 2026",ph_date:"дд.мм.гггг",odd_warn:"нечётное число гостей: одному не с кем делить номер — для него считается одноместный тариф",o_group:"Групповая бронь от 8 номеров",guests:"гостей",checkin:"дата заезда",
  g_dur:"Срок (дней)",w1:"1 нед",w2:"2 нед",w4:"1 мес",g_pkg:"Пакет",g_opt:"Опции",
  o_double:"Пара — двухместно (цена с человека)",o_meallevel:"Уровень питания:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Спец-питание:",m_none:"нет",m_halal:"халяль +15%",m_vegan:"веган +10%",o_welcome:"Welcome-пакет:",
@@ -350,7 +356,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Чемпион и Стандарт — в чём разница?",
  o_transfer:"Трансфер из аэропорта (до 4 чел.)",o_prepay:"Онлайн-предоплата: −3% OFF",download:"⬇ Скачать PDF"},
  en:{kp:"- CAMP",headline:"Build your perfect CAMP",hint:"Price and terms update on the right/below. Click “Download PDF” at the top.",
- g_client:"Client & guests",ph_client:"Client name",ph_date:"dd/mm/yyyy",s_low:"low season",s_high:"high season (higher rate)",s_mix:"low + high season",s_need:"set the date — accommodation price depends on season",s_flat:"Premium — one rate all year",s_peak:"New Year peak",odd_warn:"odd number of guests: one has nobody to share with — single occupancy is charged for them",o_group:"Group booking, 8+ rooms",g_yes:"group rate applied: {r} rooms, accommodation −20%",g_no:"group rate NOT applied: requires Premium and {n}+ rooms, currently {r}",g_room:"Room category",room_std:"Standard (partner hotel)",room_prm:"Premium (our hotel)",r_note:"Category changes the hotel only — training, meals and service are identical",r_soon:"Premium goes on sale 1 December 2026",guests:"guests",checkin:"check-in date",
+ g_client:"Client & guests",ph_client:"Client name",s_rate:"accommodation: {b} ฿/night per room (ex. VAT)",s_rates:"accommodation by dates: {b} ฿/night per room",s_need:"set the date — accommodation price depends on arrival dates",g_yes:"group price applied: rooms — {r}, accommodation part −20%",g_no:"group price NOT applied: requires LUDUS Hotel and {n}+ rooms, now {r}",g_room:"Hotel",r_note:"The hotel changes only the accommodation — programme, meals and service are the same",r_soon:"LUDUS Hotel on sale from 1 December 2026",ph_date:"dd/mm/yyyy",odd_warn:"odd number of guests: one has nobody to share with — single occupancy is charged for them",o_group:"Group booking, 8+ rooms",guests:"guests",checkin:"check-in date",
  g_dur:"Duration (days)",w1:"1 wk",w2:"2 wk",w4:"1 mo",g_pkg:"Package",g_opt:"Options",
  o_double:"Couple — twin room (price per person)",o_meallevel:"Meal level:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Special meals:",m_none:"none",m_halal:"halal +15%",m_vegan:"vegan +10%",o_welcome:"Welcome pack:",
@@ -359,7 +365,7 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Champion vs Standard — what's the difference?",
  o_transfer:"Airport transfer (up to 4 people)",o_prepay:"Online prepayment: −3% OFF",download:"⬇ Download PDF"},
  it:{kp:"- CAMP",headline:"Componi il tuo CAMP ideale",hint:"Prezzo e condizioni si aggiornano a destra/sotto. Premi «Scarica PDF» in alto.",
- g_client:"Cliente e ospiti",ph_client:"Nome del cliente",ph_date:"gg/mm/aaaa",s_low:"bassa stagione",s_high:"alta stagione (più caro)",s_mix:"bassa + alta stagione",s_need:"inserisci la data — il prezzo dipende dalla stagione",s_flat:"Premium — tariffa unica tutto l'anno",s_peak:"picco di Capodanno",odd_warn:"numero dispari di ospiti: uno resta senza compagno — per lui si applica la singola",o_group:"Prenotazione di gruppo da 8 camere",g_yes:"tariffa gruppo applicata: {r} camere, alloggio −20%",g_no:"tariffa gruppo NON applicata: servono Premium e almeno {n} camere, ora {r}",g_room:"Categoria camera",room_std:"Standard (hotel partner)",room_prm:"Premium (nostro hotel)",r_note:"La categoria cambia solo l'hotel — allenamenti, pasti e servizi restano uguali",r_soon:"Premium in vendita dal 1° dicembre 2026",guests:"ospiti",checkin:"data di arrivo",
+ g_client:"Cliente e ospiti",ph_client:"Nome del cliente",s_rate:"alloggio: {b} ฿/notte per camera (IVA esclusa)",s_rates:"alloggio per date: {b} ฿/notte per camera",s_need:"inserisci la data — il prezzo dell'alloggio dipende dalle date",g_yes:"prezzo di gruppo applicato: camere — {r}, parte alloggio −20%",g_no:"prezzo di gruppo NON applicato: serve LUDUS Hotel e almeno {n} camere, ora {r}",g_room:"Hotel",r_note:"L'hotel cambia solo l'alloggio — programma, pasti e servizi sono gli stessi",r_soon:"LUDUS Hotel in vendita dal 1° dicembre 2026",ph_date:"gg/mm/aaaa",odd_warn:"numero dispari di ospiti: uno resta senza compagno — per lui si applica la singola",o_group:"Prenotazione di gruppo da 8 camere",guests:"ospiti",checkin:"data di arrivo",
  g_dur:"Durata (giorni)",w1:"1 sett",w2:"2 sett",w4:"1 mese",g_pkg:"Pacchetto",g_opt:"Opzioni",
  o_double:"Coppia — camera doppia (prezzo a persona)",o_meallevel:"Livello pasti:",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Pasti speciali:",m_none:"nessuno",m_halal:"halal +15%",m_vegan:"vegano +10%",o_welcome:"Welcome pack:",
@@ -368,17 +374,36 @@ const UI={ru:{kp:"- CAMP",headline:"Собери свой идеальный К�
  pt_prompt:"Campione e Standard — qual è la differenza?",
  o_transfer:"Transfer aeroporto (fino a 4 persone)",o_prepay:"Acconto online: −3% OFF",download:"⬇ Scarica PDF"},
  fr:{kp:"- CAMP",headline:"Composez votre CAMP idéal",hint:"Le prix et les conditions se mettent à jour à droite/ci-dessous. Cliquez sur « Télécharger le PDF » en haut.",
- g_client:"Client et invités",ph_client:"Nom du client",ph_date:"jj/mm/aaaa",s_low:"basse saison",s_high:"haute saison (plus cher)",s_mix:"basse + haute saison",s_need:"indiquez la date — le prix dépend de la saison",s_flat:"Premium — tarif unique toute l'année",s_peak:"pic du Nouvel An",odd_warn:"nombre impair d'invités : l'un se retrouve seul — le tarif individuel s'applique pour lui",o_group:"Réservation de groupe dès 8 chambres",g_yes:"tarif groupe appliqué : {r} chambres, hébergement −20%",g_no:"tarif groupe NON appliqué : exige Premium et {n} chambres minimum, actuellement {r}",g_room:"Catégorie de chambre",room_std:"Standard (hôtel partenaire)",room_prm:"Premium (notre hôtel)",r_note:"La catégorie ne change que l'hôtel — entraînements, repas et services identiques",r_soon:"Premium en vente à partir du 1er décembre 2026",guests:"invités",checkin:"date d'arrivée",
+ g_client:"Client et invités",ph_client:"Nom du client",s_rate:"hébergement : {b} ฿/nuit par chambre (hors TVA)",s_rates:"hébergement par dates : {b} ฿/nuit par chambre",s_need:"indiquez la date — le prix de l'hébergement dépend des dates",g_yes:"prix de groupe appliqué : chambres — {r}, part hébergement −20%",g_no:"prix de groupe NON appliqué : il faut LUDUS Hotel et au moins {n} chambres, actuellement {r}",g_room:"Hôtel",r_note:"L'hôtel ne change que l'hébergement — programme, repas et service sont identiques",r_soon:"LUDUS Hotel en vente dès le 1er décembre 2026",ph_date:"jj/mm/aaaa",odd_warn:"nombre impair d'invités : l'un se retrouve seul — le tarif individuel s'applique pour lui",o_group:"Réservation de groupe dès 8 chambres",guests:"invités",checkin:"date d'arrivée",
  g_dur:"Durée (jours)",w1:"1 sem",w2:"2 sem",w4:"1 mois",g_pkg:"Forfait",g_opt:"Options",
  o_double:"Couple — chambre double (prix par personne)",o_meallevel:"Niveau des repas :",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
  o_meal:"Repas spéciaux :",m_none:"aucun",m_halal:"halal +15%",m_vegan:"végétalien +10%",o_welcome:"Welcome pack :",
  w_none:"aucun",w_basic:"de base 2 800",w_nohelm:"sans casque 4 700",w_full:"complet 6 000",
  o_massage:"Massage (séances, −10%)",o_privc:"Entraînement pers. (champion)",o_privs:"Entraînement pers. (standard)",
  pt_prompt:"Champion et Standard — quelle différence ?",
- o_transfer:"Transfert aéroport (jusqu'à 4 personnes)",o_prepay:"Acompte en ligne : −3% OFF",download:"⬇ Télécharger le PDF"}};
+ o_transfer:"Transfert aéroport (jusqu'à 4 personnes)",o_prepay:"Acompte en ligne : −3% OFF",download:"⬇ Télécharger le PDF"},
+ zh:{kp:"- CAMP",headline:"打造你的专属训练营",hint:"价格和条件会在右侧／下方实时更新。点击上方的「下载 PDF」。",
+ g_client:"客户与人数",ph_client:"客户姓名",s_rate:"住宿：每间每晚 {b} ฿（不含税）",s_rates:"按日期住宿：每间每晚 {b} ฿",s_need:"请填写日期 — 住宿价格取决于入住日期",g_yes:"已应用团体价：{r} 间客房，住宿部分 −20%",g_no:"未应用团体价：需选择 LUDUS Hotel 且不少于 {n} 间客房，当前 {r} 间",g_room:"酒店",r_note:"酒店只影响住宿 — 训练、餐食和服务完全相同",r_soon:"LUDUS Hotel 2026 年 12 月 1 日起开售",ph_date:"年/月/日",odd_warn:"人数为奇数：有一位客人无人同住，将按单人房计价",o_group:"团体预订，8 间房起",guests:"人",checkin:"入住日期",
+ g_dur:"天数",w1:"1 周",w2:"2 周",w4:"1 个月",g_pkg:"套餐",g_opt:"选项",
+ o_double:"双人合住（价格按每人计）",o_meallevel:"餐食等级：",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_meal:"特殊餐食：",m_none:"无",m_halal:"清真 +15%",m_vegan:"纯素 +10%",o_welcome:"Welcome 礼包：",
+ w_none:"无",w_basic:"基础 2 800",w_nohelm:"不含头盔 4 700",w_full:"全套 6 000",
+ o_massage:"按摩（次数，−10%）",o_privc:"私人训练（冠军教练）",o_privs:"私人训练（标准教练）",
+ pt_prompt:"冠军教练和标准教练有什么区别？",
+ o_transfer:"机场接送（4 人以内）",o_prepay:"在线预付：−3% OFF",download:"⬇ 下载 PDF"},
+ zt:{kp:"- CAMP",headline:"打造你的專屬訓練營",hint:"價格和條件會在右側／下方即時更新。點擊上方的「下載 PDF」。",
+ g_client:"客戶與人數",ph_client:"客戶姓名",s_rate:"住宿：每間每晚 {b} ฿（不含稅）",s_rates:"依日期住宿：每間每晚 {b} ฿",s_need:"請填寫日期 — 住宿價格取決於入住日期",g_yes:"已套用團體價：{r} 間客房，住宿部分 −20%",g_no:"未套用團體價：需選擇 LUDUS Hotel 且不少於 {n} 間客房，目前 {r} 間",g_room:"飯店",r_note:"飯店只影響住宿 — 訓練、餐食和服務完全相同",r_soon:"LUDUS Hotel 2026 年 12 月 1 日起開賣",ph_date:"年/月/日",odd_warn:"人數為奇數：有一位客人無人同住，將按單人房計價",o_group:"團體預訂，8 間房起",guests:"人",checkin:"入住日期",
+ g_dur:"天數",w1:"1 週",w2:"2 週",w4:"1 個月",g_pkg:"套餐",g_opt:"選項",
+ o_double:"雙人合住（價格以每人計）",o_meallevel:"餐食等級：",ml_std:"STANDARD",ml_plus:"STANDARD+",ml_champ:"CHAMPION",
+ o_meal:"特殊餐食：",m_none:"無",m_halal:"清真 +15%",m_vegan:"純素 +10%",o_welcome:"Welcome 禮包：",
+ w_none:"無",w_basic:"基礎 2 800",w_nohelm:"不含頭盔 4 700",w_full:"全套 6 000",
+ o_massage:"按摩（次數，−10%）",o_privc:"私人訓練（冠軍教練）",o_privs:"私人訓練（標準教練）",
+ pt_prompt:"冠軍教練和標準教練有什麼區別？",
+ o_transfer:"機場接送（4 人以內）",o_prepay:"線上預付：−3% OFF",download:"⬇ 下載 PDF"}};
 function applyUI(l){document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(UI[l][k]!==undefined)e.textContent=UI[l][k];});
  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{const k=e.getAttribute('data-i18n-ph');if(UI[l][k]!==undefined)e.placeholder=UI[l][k];});
  document.querySelectorAll('[data-tipkey]').forEach(e=>{const k=e.getAttribute('data-tipkey');if(TIPS[l][k]!==undefined)e.setAttribute('data-tip',TIPS[l][k]);});
+ document.documentElement.lang = (l==="zh"?"zh-Hans":l==="zt"?"zh-Hant":l);
  плейсхолдерДаты(l);}
 /* Поле <input type="date"> рисует подсказку формата силами браузера (локаль системы),
    поэтому у русского Chrome там «дд.мм.гггг» на любом языке интерфейса.
@@ -386,7 +411,8 @@ function applyUI(l){document.querySelectorAll('[data-i18n]').forEach(e=>{const k
    а по клику превращаем в настоящее поле даты и открываем календарь. */
 function плейсхолдерДаты(l){const d=document.getElementById('start');if(!d)return;
  if(!d.value){d.type='text';d.placeholder=UI[l].ph_date;}}
-let lang="ru";const $=id=>document.getElementById(id);
+// Язык по умолчанию — английский (решение 06.10.2026)
+let lang="en";const $=id=>document.getElementById(id);
 $('start').addEventListener('focus',function(){this.type='date';if(this.showPicker){try{this.showPicker();}catch(e){}}});
 $('start').addEventListener('blur',function(){if(!this.value)плейсхолдерДаты(lang);});
 function fmt(n){return n.toLocaleString('ru-RU').replace(/,/g,' ');}
@@ -394,13 +420,15 @@ function months(l){return l==="ru"?["янв","фев","мар","апр","мая"
  :l==="it"?["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"]
  :l==="fr"?["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"]
  :["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];}
-function dstr(iso,l){if(!iso)return T[l].dash;const d=new Date(iso);return d.getDate()+" "+months(l)[d.getMonth()]+" "+d.getFullYear();}
-function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,start:$('start').value,room:$('room').value,group:$('group').checked,
+function dstr(iso,l){if(!iso)return T[l].dash;const d=new Date(iso);
+ if(l==="zh"||l==="zt")return d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日";
+ return d.getDate()+" "+months(l)[d.getMonth()]+" "+d.getFullYear();}
+function selection(){return{пакет:$('package').value,дни:+$('days').value,гостей:+$('guests').value,start:$('start').value,hotel:$('hotel').value,group:$('group').checked,
  double:$('double').checked,meal_level:$('meallevel').value,meal:$('mealspec').value,welcome:$('welcome').value,
  massage:+$('massage').value,privc:+$('privc').value,privs:+$('privs').value,transfer:$('transfer').checked,prepay:$('prepay').checked};}
 function includedItems(s,группаАктивна){const l=lang,p=PRICES.пакеты[s.пакет],h=PH[l],out=[];
  out.push(h.program+"<b>"+s.пакет+"</b>");
- out.push(h.accomm+"<b>"+(s.room==="премиум"?h.room_prm:h.room_std)+" · "
+ out.push(h.accomm+"<b>"+отель(s.hotel).label+" · "
    +(s.double?h.occ_double:h.occ_single)+"</b>");
  let meal;
  if(p.меню){const lvl=(s.meal_level in PRICES.меню)?s.meal_level:"standard";meal=MEALLVL[l][lvl];}
@@ -420,26 +448,24 @@ function fitOffer(){const wrap=$('offerwrap'),off=$('offer');const scale=Math.mi
  off.style.transform="scale("+scale+")";wrap.style.height=(off.offsetHeight*scale)+"px";}
 function render(){
  const s=selection(),r=calc(s),t=T[lang],p=PRICES.пакеты[s.пакет];
+ // Под датой показываем, из каких ночей сложилось проживание: ставка клиента за номер за ночь (без VAT).
  (function(){const el=$('seasoninfo');if(!el)return;
-
-  const н=ночи_по_сезонам(s.start,+s.дни||0);
+  const н=ночи_по_ставкам(отель(s.hotel),s.start,+s.дни||0);
   if(!н.известно){el.textContent="⚠ "+UI[lang].s_need;el.style.color="#f4c000";return;}
-  el.style.color=н.высокий?"#f4c000":"";
-  let txt=н.высокий&&н.низкий?UI[lang].s_mix+" ("+н.низкий+"+"+н.высокий+")"
-    :(н.высокий?UI[lang].s_high:UI[lang].s_low);
-  if(н.пик>0){txt+=" · "+UI[lang].s_peak+" ×"+н.пик;el.style.color="#f4c000";}
-  el.textContent=txt;})();
+  const части=н.группы.map(g=>g.ночей+"×"+fmt(Math.round(g.ставка)));
+  el.style.color=н.группы.length>1?"#f4c000":"";
+  el.textContent=(н.группы.length>1?UI[lang].s_rates:UI[lang].s_rate).replace("{b}",части.join(" + "));})();
   const mealsActive=p.меню;
  $('wrap-meallevel').classList.toggle('dis',!mealsActive);$('meallevel').disabled=!mealsActive;
  $('wrap-meal').classList.toggle('dis',!(mealsActive||p.питание_день>0));
- // Премиум продаётся только с даты открытия продаж нашего отеля
+ // Наш отель продаётся только с даты открытия продаж
  (function(){const el=$('roominfo');if(!el)return;
-  const рано=s.room==='премиум'&&s.start&&s.start<PRICES.премиум_с;
+  const h=отель(s.hotel);const рано=!!h.с_продаж&&s.start&&s.start<h.с_продаж;
   el.textContent=рано?('⚠ '+UI[lang].r_soon):UI[lang].r_note;
   el.style.color=рано?'#f4c000':'';})();
- // Групповая скидка: только наш отель, только одноместно, от 8 номеров
+ // Групповая скидка: только наш отель, от 8 номеров
  (function(){const el=$('groupinfo');if(!el)return;
-  const вкл=$('group').checked, прем=s.room==='премиум', N=+s.гостей||0;
+  const вкл=$('group').checked, прем=!!отель(s.hotel).группа, N=+s.гостей||0;
   const ном = s.double ? Math.ceil(N/2) : N;   // двухместный номер — это тоже номер
   $('wrap-group').classList.toggle('dis',!прем);
   if(!вкл){el.style.display='none';return;}
@@ -460,7 +486,7 @@ function render(){
  const dates=$('start').value?dstr($('start').value,lang)+" – "+dstr(endISO,lang):t.dash;
  const inc=includedItems(s,r.группа).map(x=>'<li><span class="d">◆</span><span>'+x+'</span></li>').join('');
  let rows=r.lines.map(([k,arg,det,per,all])=>{let n=LN[lang][k];n=(typeof n==="function")?n(arg):n;
-   if(k==="package"){n+=LN[lang].acc_sfx(s.room==="премиум"?PH[lang].room_prm:PH[lang].room_std,
+   if(k==="package"){n+=LN[lang].acc_sfx(r.отель.label,
      s.double?PH[lang].occ_double:PH[lang].occ_single);
      if(r.группа)n+=" · "+PH[lang].group_tag;}
    return '<tr><td>'+n+(det?'<div class="sm">'+det+'</div>':'')+'</td><td class="r">฿ '+fmt(all)+'</td></tr>';}).join('');
@@ -496,6 +522,8 @@ document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',
 $('durchips').addEventListener('click',e=>{const b=e.target.closest('button');if(b){$('days').value=b.dataset.d;render();}});
 $('lang').addEventListener('click',e=>{const b=e.target.closest('button');if(b){lang=b.dataset.l;[...$('lang').children].forEach(x=>x.classList.toggle('on',x===b));applyUI(lang);render();}});
 window.addEventListener('resize',fitOffer);
+// Список отелей — из PRICES.отели; названия отелей — бренды, не переводятся.
+$('hotel').innerHTML=PRICES.отели.map(h=>'<option value="'+h.id+'"'+(h.id===PRICES.отель_по_умолчанию?' selected':'')+'>'+h.label+'</option>').join('');
 applyUI(lang);render();
 </script>
 </body>
